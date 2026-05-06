@@ -1,26 +1,31 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
-import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Bins from './pages/Bins'
 import BinDetail from './pages/BinDetail'
 import RoutesPage from './pages/Routes'
 import Analytics from './pages/Analytics'
-import Specifications from './pages/Specifications'
+import Alerts from './pages/Alerts'
+import Telemetry from './pages/Telemetry'
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/bins" element={<Bins />} />
-        <Route path="/bins/:id" element={<BinDetail />} />
-        <Route path="/routes" element={<RoutesPage />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/specifications" element={<Specifications />} />
-      </Routes>
+      <div style={{ display: 'flex', minHeight: '100vh', background: '#05080f' }}>
+        <Navbar />
+        <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard"   element={<Dashboard />} />
+            <Route path="/fleet"       element={<Bins />} />
+            <Route path="/fleet/:id"   element={<BinDetail />} />
+            <Route path="/routes"      element={<RoutesPage />} />
+            <Route path="/analytics"   element={<Analytics />} />
+            <Route path="/alerts"      element={<Alerts />} />
+            <Route path="/telemetry"   element={<Telemetry />} />
+          </Routes>
+        </main>
+      </div>
     </BrowserRouter>
   )
 }

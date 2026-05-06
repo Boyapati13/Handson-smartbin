@@ -1,110 +1,105 @@
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { BINS, FILL_TREND, COLLECTION_TREND, fillColor } from '../data/bins'
+import { BINS, WEEK_DATA, fillColor, statusMap } from '../data/bins'
+import FillBar from '../components/FillBar'
 
-const STATUS_DIST = [
-  { name: 'Online', value: BINS.filter(b => b.status === 'online').length, color: '#a3e635' },
-  { name: 'Full', value: BINS.filter(b => b.status === 'full').length, color: '#f59e0b' },
-  { name: 'Warning', value: BINS.filter(b => b.status === 'warning').length, color: '#f59e0b' },
-  { name: 'Fault', value: BINS.filter(b => b.status === 'fault').length, color: '#ef4444' },
-  { name: 'Offline', value: BINS.filter(b => b.status === 'offline').length, color: '#64748b' },
-]
-
-const TT_STYLE = { background: '#0d1528', border: '1px solid #162347', borderRadius: 8, fontSize: '0.75rem', color: '#cbd5e1' }
+const S = { card:{background:'#0b1120',border:'1px solid #131e35',borderRadius:10}, mono:{fontFamily:'IBM Plex Mono,monospace'}, label:{fontSize:'0.62rem',fontFamily:'IBM Plex Mono,monospace',color:'#3a4a64',letterSpacing:'0.07em',textTransform:'uppercase',marginBottom:6} }
 
 export default function Analytics() {
-  const avgFill = Math.round(BINS.reduce((a, b) => a + b.fill, 0) / BINS.length)
-  const avgBatt = Math.round(BINS.reduce((a, b) => a + b.battery, 0) / BINS.length)
-  const totalCycles = BINS.reduce((a, b) => a + b.compactions, 0)
+  const maxV = Math.max(...WEEK_DATA.map(d=>d.v))
+  const avgV = Math.round(WEEK_DATA.reduce((s,d)=>s+d.v,0)/WEEK_DATA.length)
 
   return (
-    <main style={{ padding: '32px 24px', maxWidth: 1100, margin: '0 auto', fontFamily: 'DM Sans, sans-serif' }}>
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: 'DM Serif Display, Georgia, serif', fontSize: '1.9rem', color: '#fff', marginBottom: 4 }}>Analytics</h1>
-        <p style={{ fontSize: '0.82rem', color: '#64748b' }}>Fleet-wide performance · rolling 7 days</p>
+    <div style={{padding:'28px 32px',animation:'slideUp 0.35s ease both'}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'Syne,sans-serif',fontSize:'1.7rem',fontWeight:700,color:'#f0f4ff',letterSpacing:'-0.02em',marginBottom:4}}>Analytics</h1>
+        <div style={{...S.mono,fontSize:'0.7rem',color:'#5a6b8a'}}>Fleet performance · rolling 7 days</div>
       </div>
 
-      {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: 14, marginBottom: 28 }}>
-        {[
-          { label: 'Avg Fill', value: `${avgFill}%`, note: 'Fleet average' },
-          { label: 'Avg Battery', value: `${avgBatt}%`, note: 'Fleet average' },
-          { label: 'Total Compactions', value: totalCycles, note: 'All units · today' },
-          { label: 'Route Savings', value: '~28%', note: 'vs static routing' },
-          { label: 'Uptime', value: '87.5%', note: '7/8 units online' },
-          { label: 'CO₂ Saved', value: '~41 kg', note: 'vs weekly fixed routes' },
-        ].map(k => (
-          <div key={k.label} style={{ background: '#0d1528', border: '1px solid #111d38', borderRadius: 10, padding: '16px 18px' }}>
-            <div style={{ fontSize: '0.65rem', color: '#475569', fontFamily: 'JetBrains Mono, monospace', marginBottom: 4, letterSpacing: '0.04em' }}>{k.label.toUpperCase()}</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '1.5rem', fontWeight: 700, color: '#a3e635', lineHeight: 1, marginBottom: 4 }}>{k.value}</div>
-            <div style={{ fontSize: '0.68rem', color: '#334155' }}>{k.note}</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12,marginBottom:20}}>
+        {[['Avg Fill','71%','Weekly avg','#8fff00'],['Collections','12','This week','#38bdf8'],
+          ['Compactions',BINS.reduce((s,b)=>s+b.cycles,0),'All units today','#5a6b8a'],
+          ['Uptime','87.5%','Network availability','#8fff00'],
+          ['Route Savings','28%','vs. fixed schedule','#ffb347'],['CO₂ Saved','~41 kg','vs. weekly routes','#38bdf8']].map(([l,v,n,c])=>(
+          <div key={l} style={{...S.card,padding:'16px 18px'}}>
+            <div style={S.label}>{l}</div>
+            <div style={{...S.mono,fontSize:'1.7rem',fontWeight:600,color:c,lineHeight:1,marginBottom:4}}>{v}</div>
+            <div style={{fontSize:'0.68rem',color:'#3a4a64'}}>{n}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
         {/* Fill trend */}
-        <div style={{ background: '#0d1528', border: '1px solid #111d38', borderRadius: 12, padding: '20px' }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', marginBottom: 16 }}>Avg fill level · last 7 days</div>
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={FILL_TREND}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#111d38" />
-              <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#475569', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} domain={[0,100]} />
-              <Tooltip contentStyle={TT_STYLE} />
-              <Line type="monotone" dataKey="avg" stroke="#a3e635" strokeWidth={2} dot={{ fill: '#a3e635', r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Collection trend */}
-        <div style={{ background: '#0d1528', border: '1px solid #111d38', borderRadius: 12, padding: '20px' }}>
-          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', marginBottom: 16 }}>Collections & compactions · last 4 weeks</div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={COLLECTION_TREND}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#111d38" />
-              <XAxis dataKey="week" tick={{ fill: '#475569', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#475569', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={TT_STYLE} />
-              <Bar dataKey="collections" fill="#162347" radius={[3,3,0,0]} name="Collections" />
-              <Bar dataKey="compactions" fill="#a3e635" radius={[3,3,0,0]} name="Compactions" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Per-bin fill table */}
-      <div style={{ background: '#0d1528', border: '1px solid #111d38', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #111d38', fontWeight: 600, fontSize: '0.875rem', color: '#fff' }}>
-          Per-unit fill levels
-        </div>
-        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {[...BINS].sort((a,b) => b.fill - a.fill).map(b => (
-            <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: '#a3e635', minWidth: 56 }}>{b.id}</span>
-              <span style={{ fontSize: '0.78rem', color: '#94a3b8', minWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ background: '#162347', borderRadius: 9999, height: 6, overflow: 'hidden' }}>
-                  <div style={{ width: `${b.fill}%`, background: fillColor(b.fill), height: '100%', borderRadius: 9999, transition: 'width 0.5s' }} />
+        <div style={{...S.card,padding:'20px'}}>
+          <div style={{fontSize:'0.85rem',fontWeight:600,color:'#f0f4ff',marginBottom:4}}>Fill Level Trend</div>
+          <div style={{...S.mono,fontSize:'0.62rem',color:'#5a6b8a',marginBottom:16}}>AVG % · LAST 7 DAYS</div>
+          <div style={{position:'relative',height:140}}>
+            <svg width="100%" height="140" viewBox="0 0 300 140" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8fff00" stopOpacity="0.2"/>
+                  <stop offset="100%" stopColor="#8fff00" stopOpacity="0"/>
+                </linearGradient>
+              </defs>
+              {[25,50,75,100].map(v=>(
+                <line key={v} x1="0" y1={140-(v/100)*120} x2="300" y2={140-(v/100)*120} stroke="#131e35" strokeWidth="1" strokeDasharray="4 4"/>
+              ))}
+              <polygon points={`0,140 ${WEEK_DATA.map((d,i)=>`${(i/(WEEK_DATA.length-1))*300},${140-(d.v/100)*120}`).join(' ')} 300,140`} fill="url(#ag)"/>
+              <polyline points={WEEK_DATA.map((d,i)=>`${(i/(WEEK_DATA.length-1))*300},${140-(d.v/100)*120}`).join(' ')} fill="none" stroke="#8fff00" strokeWidth="2" strokeLinejoin="round"/>
+              {WEEK_DATA.map((d,i)=>(
+                <circle key={i} cx={(i/(WEEK_DATA.length-1))*300} cy={140-(d.v/100)*120} r="3.5" fill="#8fff00" style={{filter:'drop-shadow(0 0 4px #8fff00)'}}/>
+              ))}
+            </svg>
+            <div style={{display:'flex',justifyContent:'space-between',marginTop:8}}>
+              {WEEK_DATA.map(d=>(
+                <div key={d.d} style={{textAlign:'center'}}>
+                  <div style={{fontSize:'0.6rem',color:'#3a4a64',...S.mono}}>{d.d}</div>
+                  <div style={{fontSize:'0.6rem',color:fillColor(d.v),...S.mono}}>{d.v}%</div>
                 </div>
-              </div>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: fillColor(b.fill), minWidth: 36, textAlign: 'right' }}>{b.fill}%</span>
+              ))}
             </div>
-          ))}
+          </div>
+          <div style={{borderTop:'1px solid #131e35',paddingTop:12,marginTop:8,display:'flex',gap:20}}>
+            <div><div style={S.label}>7-day avg</div><div style={{...S.mono,fontSize:'1.1rem',color:'#8fff00',fontWeight:600}}>{avgV}%</div></div>
+            <div><div style={S.label}>Peak</div><div style={{...S.mono,fontSize:'1.1rem',color:'#ffb347',fontWeight:600}}>{maxV}%</div></div>
+          </div>
+        </div>
+
+        {/* Per-unit bars */}
+        <div style={{...S.card,padding:'20px'}}>
+          <div style={{fontSize:'0.85rem',fontWeight:600,color:'#f0f4ff',marginBottom:4}}>Per-Unit Fill</div>
+          <div style={{...S.mono,fontSize:'0.62rem',color:'#5a6b8a',marginBottom:16}}>CURRENT % · ALL UNITS</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {[...BINS].sort((a,b)=>b.fill-a.fill).map(b=>(
+              <div key={b.id} style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{...S.mono,fontSize:'0.63rem',color:'#8fff00',minWidth:52}}>{b.id}</span>
+                <div style={{flex:1}}><FillBar pct={b.fill} height={7} glow/></div>
+                <span style={{...S.mono,fontSize:'0.65rem',color:fillColor(b.fill),minWidth:30,textAlign:'right',fontWeight:600}}>{b.fill}%</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Status distribution */}
-      <div style={{ background: '#0d1528', border: '1px solid #111d38', borderRadius: 12, padding: '20px' }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff', marginBottom: 16 }}>Status distribution</div>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          {STATUS_DIST.map(s => (
-            <div key={s.name} style={{ flex: '1 1 80px', background: '#111d38', borderRadius: 10, padding: '14px', textAlign: 'center' }}>
-              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '1.6rem', fontWeight: 700, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.value}</div>
-              <div style={{ fontSize: '0.72rem', color: '#475569' }}>{s.name}</div>
-            </div>
-          ))}
+      {/* Status breakdown */}
+      <div style={{...S.card,padding:'20px'}}>
+        <div style={{fontSize:'0.85rem',fontWeight:600,color:'#f0f4ff',marginBottom:16}}>Fleet Status Breakdown</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(120px,1fr))',gap:10}}>
+          {Object.entries(statusMap).map(([k,{color,label}])=>{
+            const count=BINS.filter(b=>b.status===k).length
+            const pct=Math.round((count/BINS.length)*100)
+            return(
+              <div key={k} style={{background:'#0f1729',border:`1px solid ${color}20`,borderRadius:8,padding:'14px 16px',textAlign:'center'}}>
+                <div style={{...S.mono,fontSize:'1.8rem',fontWeight:700,color,lineHeight:1,marginBottom:4}}>{count}</div>
+                <div style={{fontSize:'0.68rem',color,...S.mono,marginBottom:6}}>{label.toUpperCase()}</div>
+                <div style={{background:'#1a2840',borderRadius:9999,height:3,overflow:'hidden'}}>
+                  <div style={{width:`${pct}%`,height:'100%',background:color,borderRadius:9999}}/>
+                </div>
+                <div style={{fontSize:'0.6rem',color:'#3a4a64',...S.mono,marginTop:4}}>{pct}% of fleet</div>
+              </div>
+            )
+          })}
         </div>
       </div>
-    </main>
+    </div>
   )
 }

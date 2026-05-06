@@ -1,16 +1,19 @@
-import { statusColor } from '../data/bins'
+import { statusMap } from '../data/bins'
 
 export default function StatusBadge({ status }) {
-  const { dot, label } = statusColor(status)
+  const { color, label } = statusMap[status] || { color: '#3a4a64', label: 'Unknown' }
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      fontSize: '0.7rem', fontFamily: 'JetBrains Mono, monospace', fontWeight: 500,
-      color: dot, background: `${dot}18`, border: `1px solid ${dot}44`,
-      padding: '2px 8px', borderRadius: 9999,
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.65rem', fontWeight: 500,
+      color, background: `${color}14`, border: `1px solid ${color}30`,
+      padding: '3px 9px', borderRadius: 4,
     }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot, display: 'inline-block',
-        boxShadow: status === 'online' ? `0 0 6px ${dot}` : 'none' }} />
+      <span style={{
+        width: 5, height: 5, borderRadius: '50%', background: color, display: 'inline-block',
+        boxShadow: status === 'online' ? `0 0 6px ${color}` : 'none',
+        animation: status === 'warning' ? 'breathe 1.8s ease-in-out infinite' : 'none'
+      }} />
       {label}
     </span>
   )
