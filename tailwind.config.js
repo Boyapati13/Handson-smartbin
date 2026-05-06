@@ -4,26 +4,22 @@ export default {
   theme: {
     extend: {
       colors: {
+        handson: '#29ABE2',
         navy: {
-          900: '#0a0f1e',
-          800: '#0d1528',
-          700: '#111d38',
-          600: '#162347',
-          500: '#1e3163',
-        },
-        lime: {
-          400: '#a3e635',
-          500: '#84cc16',
-          600: '#65a30d',
+          900: '#060c18',
+          800: '#090f1e',
+          700: '#0c1425',
+          600: '#101b30',
+          500: '#152038',
+          400: '#1c2d4a',
         },
       },
       fontFamily: {
-        display: ['"DM Serif Display"', 'Georgia', 'serif'],
-        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'],
+        display: ['"Syne"', 'sans-serif'],
+        body:    ['"Figtree"', 'system-ui', 'sans-serif'],
+        mono:    ['"IBM Plex Mono"', 'monospace'],
       },
     },
   },
   plugins: [],
 }
-

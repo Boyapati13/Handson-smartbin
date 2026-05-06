@@ -1,192 +1,214 @@
 import { Link } from 'react-router-dom'
-import { BINS, ALERTS, WEEK_DATA, fillColor, statusMap } from '../data/bins'
-import FillBar from '../components/FillBar'
+import { ArrowRight, Zap } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { useApp } from '../context/AppContext'
+import { WEEK_DATA, fillColor } from '../data/bins'
+import FillBar    from '../components/FillBar'
 import StatusBadge from '../components/StatusBadge'
-import ArcGauge from '../components/ArcGauge'
+import ArcGauge   from '../components/ArcGauge'
+import MapView    from '../components/MapView'
 
-const S = {
-  card: { background: '#0b1120', border: '1px solid #131e35', borderRadius: 10 },
-  mono: { fontFamily: 'IBM Plex Mono, monospace' },
-  label: { fontSize: '0.62rem', fontFamily: 'IBM Plex Mono, monospace', color: '#3a4a64', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 6 },
+/* ── shared style tokens ────────────────────────────────────────────────── */
+const card  = { background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, boxShadow:'var(--shadow)' }
+const mono  = { fontFamily:'IBM Plex Mono, monospace' }
+const label = { fontSize:'0.68rem', ...mono, color:'var(--muted)', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:6 }
+
+/* ── custom Recharts tooltip ─────────────────────────────────────────────── */
+function FillTooltip({ active, payload, label: day }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 12px', boxShadow:'var(--shadow-md)', fontSize:'0.78rem' }}>
+      <div style={{ color:'var(--sub)', marginBottom:4, ...mono, fontSize:'0.68rem' }}>{day}</div>
+      <div style={{ color:'var(--blue)', fontWeight:700, ...mono }}>{payload[0].value}%</div>
+    </div>
+  )
 }
 
-const maxFill = Math.max(...WEEK_DATA.map(d => d.v))
-const avgFill = Math.round(WEEK_DATA.reduce((s, d) => s + d.v, 0) / WEEK_DATA.length)
+function LiveDate() {
+  const now = new Date()
+  return (
+    <span style={{ ...mono, fontSize:'0.7rem', color:'var(--sub)' }}>
+      {now.toLocaleDateString('en-MT', { weekday:'short', day:'numeric', month:'long', year:'numeric' })}
+    </span>
+  )
+}
+
+const avgFill = Math.round(WEEK_DATA.reduce((s,d) => s + d.v, 0) / WEEK_DATA.length)
 
 export default function Dashboard() {
-  const critical = BINS.filter(b => b.fill >= 90 || b.status === 'fault').length
-  const collections = BINS.filter(b => b.fill >= 80 && b.status !== 'offline').length
-  const online = BINS.filter(b => b.status !== 'offline').length
+  const { bins, alerts } = useApp()
+
+  const critical    = bins.filter(b => b.fill >= 90 || b.status === 'fault').length
+  const collections = bins.filter(b => b.fill >= 80 && b.status !== 'offline').length
+  const online      = bins.filter(b => b.status !== 'offline').length
+  const liveAvg     = Math.round(bins.reduce((s,b) => s + b.fill, 0) / bins.length)
+
+  const kpis = [
+    { label:'Avg Fill Level',  value:`${liveAvg}%`,  sub:'Fleet live average',             color:'var(--blue)',    glow:'rgba(41,171,226,0.12)'  },
+    { label:'Need Collection', value:collections,    sub:'Above 80% threshold',             color:'var(--amber)',   glow:'rgba(245,158,11,0.12)'  },
+    { label:'Critical Issues', value:critical,       sub:'Faults + overflow',               color: critical>0?'var(--crimson)':'var(--green)', glow: critical>0?'rgba(239,68,68,0.12)':'rgba(16,185,129,0.12)' },
+    { label:'Fleet Uptime',    value:`${Math.round((online/bins.length)*100)}%`, sub:`${online} of ${bins.length} units live`, color:'var(--green)', glow:'rgba(16,185,129,0.12)' },
+  ]
 
   return (
-    <div style={{ padding: '28px 32px', animation: 'slideUp 0.35s ease both' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
+    <div style={{ padding:'28px 32px', animation:'slideUp 0.3s ease both' }}>
+
+      {/* Page header */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:28, flexWrap:'wrap', gap:12 }}>
         <div>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontSize: '1.7rem', fontWeight: 700, color: '#f0f4ff', letterSpacing: '-0.02em', marginBottom: 4 }}>
+          <h1 style={{ fontFamily:'Syne, sans-serif', fontSize:'1.65rem', fontWeight:700, color:'var(--text)', letterSpacing:'-0.02em', marginBottom:4, lineHeight:1.2 }}>
             Operations Centre
           </h1>
-          <div style={{ ...S.mono, fontSize: '0.7rem', color: '#5a6b8a' }}>Malta Smart Bin Network · CT2386-2025 · Tue 5 May 2026</div>
+          <LiveDate />
         </div>
-        <Link to="/routes" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#8fff00', color: '#05080f', fontWeight: 700, fontSize: '0.82rem', padding: '10px 20px', borderRadius: 8, textDecoration: 'none', fontFamily: 'Figtree, sans-serif', boxShadow: '0 0 20px rgba(143,255,0,0.2)' }}>
-          ⇢ Dispatch Route
+        <Link to="/routes" style={{
+          display:'inline-flex', alignItems:'center', gap:8,
+          background:'var(--blue)', color:'#fff',
+          fontWeight:600, fontSize:'0.82rem', padding:'10px 20px',
+          borderRadius:8, textDecoration:'none', fontFamily:'Figtree, sans-serif',
+          boxShadow:'0 4px 14px rgba(41,171,226,0.35)',
+          transition:'box-shadow 0.2s, transform 0.2s',
+        }}
+          onMouseEnter={e => { e.currentTarget.style.boxShadow='0 6px 20px rgba(41,171,226,0.5)'; e.currentTarget.style.transform='translateY(-1px)' }}
+          onMouseLeave={e => { e.currentTarget.style.boxShadow='0 4px 14px rgba(41,171,226,0.35)'; e.currentTarget.style.transform='none' }}>
+          <Zap size={14} strokeWidth={2.5} />
+          Dispatch Route
+          <ArrowRight size={14} strokeWidth={2.5} />
         </Link>
       </div>
 
       {/* KPI strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 24 }}>
-        {[
-          { label: 'Avg Fill Level', value: `${avgFill}%`, sub: 'Fleet average', color: '#8fff00' },
-          { label: 'Need Collection', value: collections, sub: 'Above 80% threshold', color: '#ffb347' },
-          { label: 'Critical Issues', value: critical, sub: 'Faults + overflow', color: critical > 0 ? '#ff3b55' : '#8fff00' },
-          { label: 'Fleet Uptime', value: `${Math.round((online / BINS.length) * 100)}%`, sub: `${online} of ${BINS.length} units live`, color: '#38bdf8' },
-        ].map(k => (
-          <div key={k.label} style={{ ...S.card, padding: '18px 20px', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: 0, right: 0, width: 70, height: 70, background: `radial-gradient(circle at top right, ${k.color}12 0%, transparent 70%)` }} />
-            <div style={S.label}>{k.label}</div>
-            <div style={{ ...S.mono, fontSize: '2rem', fontWeight: 600, color: k.color, lineHeight: 1, marginBottom: 4 }}>{k.value}</div>
-            <div style={{ fontSize: '0.7rem', color: '#5a6b8a' }}>{k.sub}</div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))', gap:12, marginBottom:24 }}>
+        {kpis.map(k => (
+          <div key={k.label} style={{ ...card, padding:'20px 22px', position:'relative', overflow:'hidden' }}>
+            <div style={{ position:'absolute', top:0, right:0, width:80, height:80, background:`radial-gradient(circle at top right,${k.glow} 0%,transparent 70%)` }} />
+            <div style={label}>{k.label}</div>
+            <div style={{ ...mono, fontSize:'2.2rem', fontWeight:700, color:k.color, lineHeight:1, marginBottom:6 }}>{k.value}</div>
+            <div style={{ fontSize:'0.72rem', color:'var(--sub)' }}>{k.sub}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 20 }}>
-        {/* Left column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Main grid */}
+      <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) 340px', gap:20, alignItems:'start' }}>
 
-          {/* Map */}
-          <div style={{ ...S.card, overflow: 'hidden' }}>
-            <div style={{ padding: '13px 18px', borderBottom: '1px solid #131e35', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Left column */}
+        <div style={{ display:'flex', flexDirection:'column', gap:16, minWidth:0 }}>
+
+          {/* Live map */}
+          <div style={{ ...card, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div>
-                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#f0f4ff' }}>Bin Network</span>
-                <span style={{ ...S.mono, fontSize: '0.62rem', color: '#5a6b8a', marginLeft: 10 }}>MALTA</span>
+                <span style={{ fontWeight:600, fontSize:'0.88rem', color:'var(--text)' }}>Bin Network</span>
+                <span style={{ ...mono, fontSize:'0.62rem', color:'var(--sub)', marginLeft:10 }}>MALTA · LIVE</span>
               </div>
-              <div style={{ display: 'flex', gap: 14 }}>
-                {[['#8fff00','Online'],['#ffb347','Warning'],['#ff3b55','Fault'],['#3a4a64','Offline']].map(([c,l]) => (
-                  <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <div style={{ width: 5, height: 5, borderRadius: '50%', background: c }} />
-                    <span style={{ fontSize: '0.62rem', color: '#5a6b8a', ...S.mono }}>{l}</span>
+              <div style={{ display:'flex', gap:14 }}>
+                {[['var(--green)','Online'],['var(--amber)','Full'],['var(--crimson)','Fault'],['var(--muted)','Offline']].map(([c,l]) => (
+                  <div key={l} style={{ display:'flex', alignItems:'center', gap:4 }}>
+                    <div style={{ width:6, height:6, borderRadius:'50%', background:c }} />
+                    <span style={{ fontSize:'0.63rem', color:'var(--sub)', ...mono }}>{l}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div style={{ position: 'relative', background: '#0a1020', height: 200, overflow: 'hidden' }}>
-              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.12 }}>
-                {[...Array(10)].map((_, i) => (
-                  <g key={i}>
-                    <line x1={`${i * 11.1}%`} y1="0" x2={`${i * 11.1}%`} y2="100%" stroke="#1a2840" strokeWidth="1" />
-                    <line x1="0" y1={`${i * 11.1}%`} x2="100%" y2={`${i * 11.1}%`} stroke="#1a2840" strokeWidth="1" />
-                  </g>
-                ))}
-              </svg>
-              {/* Malta coast hint */}
-              <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05 }}>
-                <path d="M150,60 Q200,40 280,55 Q350,45 420,70 Q480,90 500,130 Q490,160 440,165 Q400,180 350,170 Q300,190 250,175 Q200,185 160,160 Q120,140 130,100 Z" fill="#8fff00" />
-              </svg>
-              {BINS.map(b => {
-                const { color } = statusMap[b.status] || { color: '#3a4a64' }
-                return (
-                  <Link key={b.id} to={`/fleet/${b.id}`} title={`${b.id} · ${b.name} · ${b.fill}%`}
-                    style={{ position: 'absolute', left: `${b.mapX}%`, top: `${b.mapY}%`, transform: 'translate(-50%,-50%)', zIndex: 3 }}>
-                    <div style={{ position: 'relative' }}>
-                      {(b.status === 'online' || b.status === 'full') &&
-                        <div style={{ position: 'absolute', inset: -3, borderRadius: '50%', background: color, opacity: 0.2, animation: 'pulse-ring 2.5s ease-out infinite' }} />}
-                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: '1.5px solid rgba(255,255,255,0.15)', boxShadow: `0 0 10px ${color}80` }} />
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
+            <MapView bins={bins} height={300} />
           </div>
 
           {/* Gauge grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-            {BINS.map(b => (
-              <Link key={b.id} to={`/fleet/${b.id}`} style={{ textDecoration: 'none' }}>
-                <div style={{ ...S.card, padding: '14px 12px', textAlign: 'center', transition: 'border-color 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = '#1a2840'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = '#131e35'}>
-                  <div style={{ ...S.mono, fontSize: '0.6rem', color: '#8fff00', marginBottom: 6 }}>{b.id}</div>
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
-                    <ArcGauge pct={b.fill} size={64} stroke={5} />
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(136px,1fr))', gap:10 }}>
+            {bins.map(b => (
+              <Link key={b.id} to={`/fleet/${b.id}`} style={{ textDecoration:'none', cursor:'pointer' }}>
+                <div style={{ ...card, padding:'14px 12px', textAlign:'center', transition:'all 0.18s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor='var(--blue)'; e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 4px 12px rgba(41,171,226,0.15)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='var(--shadow)' }}>
+                  <div style={{ ...mono, fontSize:'0.62rem', color:'var(--blue)', marginBottom:6, fontWeight:600 }}>{b.id}</div>
+                  <div style={{ display:'flex', justifyContent:'center', marginBottom:6 }}>
+                    <ArcGauge pct={Math.round(b.fill)} size={64} stroke={5} />
                   </div>
                   <StatusBadge status={b.status} />
-                  <div style={{ fontSize: '0.62rem', color: '#5a6b8a', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</div>
+                  <div style={{ fontSize:'0.63rem', color:'var(--sub)', marginTop:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{b.name}</div>
                 </div>
               </Link>
             ))}
           </div>
 
-          {/* Fill trend */}
-          <div style={{ ...S.card, padding: '18px 20px' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f0f4ff', marginBottom: 4 }}>Fill Trend</div>
-            <div style={{ ...S.mono, fontSize: '0.62rem', color: '#5a6b8a', marginBottom: 14 }}>AVG % · LAST 7 DAYS</div>
-            <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8fff00" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="#8fff00" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <polygon points={`0,80 ${WEEK_DATA.map((d,i) => `${(i/(WEEK_DATA.length-1))*300},${80-(d.v/100)*70}`).join(' ')} 300,80`} fill="url(#tg)" />
-              <polyline points={WEEK_DATA.map((d,i) => `${(i/(WEEK_DATA.length-1))*300},${80-(d.v/100)*70}`).join(' ')} fill="none" stroke="#8fff00" strokeWidth="2" strokeLinejoin="round" />
-              {WEEK_DATA.map((d,i) => (
-                <circle key={i} cx={(i/(WEEK_DATA.length-1))*300} cy={80-(d.v/100)*70} r="3" fill="#8fff00" style={{ filter: 'drop-shadow(0 0 3px #8fff00)' }} />
-              ))}
-            </svg>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-              {WEEK_DATA.map(d => (
-                <div key={d.d} style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.6rem', color: '#3a4a64', ...S.mono }}>{d.d}</div>
-                  <div style={{ fontSize: '0.6rem', color: fillColor(d.v), ...S.mono }}>{d.v}%</div>
-                </div>
-              ))}
-            </div>
+          {/* Fill trend — Recharts */}
+          <div style={{ ...card, padding:'20px 22px' }}>
+            <div style={{ fontSize:'0.88rem', fontWeight:600, color:'var(--text)', marginBottom:2 }}>Fill Trend</div>
+            <div style={{ ...mono, fontSize:'0.65rem', color:'var(--sub)', marginBottom:16 }}>AVG % · LAST 7 DAYS</div>
+            <ResponsiveContainer width="100%" height={110}>
+              <AreaChart data={WEEK_DATA} margin={{ top:4, right:4, bottom:0, left:-20 }}>
+                <defs>
+                  <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stopColor="#29ABE2" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#29ABE2" stopOpacity={0}    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="d" tick={{ fill:'var(--muted)', fontSize:10, fontFamily:'IBM Plex Mono, monospace' }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0,100]} tick={{ fill:'var(--muted)', fontSize:10, fontFamily:'IBM Plex Mono, monospace' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<FillTooltip />} cursor={{ stroke:'var(--border2)', strokeWidth:1 }} />
+                <Area type="monotone" dataKey="v" stroke="#29ABE2" strokeWidth={2} fill="url(#fillGrad)" dot={{ fill:'#29ABE2', r:3, strokeWidth:0 }} activeDot={{ fill:'#29ABE2', r:5, strokeWidth:0 }} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
         {/* Right sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
           {/* Alerts */}
-          <div style={{ ...S.card, overflow: 'hidden' }}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #131e35', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600, fontSize: '0.82rem', color: '#f0f4ff' }}>Active Alerts</span>
-              <span style={{ ...S.mono, fontSize: '0.62rem', color: ALERTS.filter(a => a.sev === 'crit').length > 0 ? '#ff3b55' : '#8fff00' }}>
-                {ALERTS.filter(a => a.sev === 'crit').length} CRITICAL
-              </span>
+          <div style={{ ...card, overflow:'hidden' }}>
+            <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontWeight:600, fontSize:'0.85rem', color:'var(--text)' }}>Active Alerts</span>
+              {alerts.filter(a => a.sev === 'crit').length > 0 && (
+                <span style={{ ...mono, fontSize:'0.62rem', color:'var(--crimson)', background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', padding:'2px 8px', borderRadius:4, fontWeight:700 }}>
+                  {alerts.filter(a => a.sev === 'crit').length} CRITICAL
+                </span>
+              )}
             </div>
-            {ALERTS.map(a => (
-              <Link key={a.id} to={`/fleet/${a.bin}`} style={{ display: 'flex', gap: 12, padding: '11px 16px', borderBottom: '1px solid #08111f', textDecoration: 'none', transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#0f1729'}
+            {alerts.slice(0,6).map((a,i) => (
+              <Link key={a.id ?? i} to={`/fleet/${a.bin}`}
+                style={{ display:'flex', gap:12, padding:'12px 16px', borderBottom:'1px solid var(--ink)', textDecoration:'none', transition:'background 0.12s', cursor:'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--raised)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <div style={{ width: 2, borderRadius: 4, background: a.sev === 'crit' ? '#ff3b55' : '#ffb347', flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ ...S.mono, fontSize: '0.62rem', fontWeight: 600, color: a.sev === 'crit' ? '#ff3b55' : '#ffb347' }}>{a.type}</span>
-                    <span style={{ ...S.mono, fontSize: '0.6rem', color: '#3a4a64' }}>{a.age}</span>
+                <div style={{ width:3, borderRadius:4, background: a.sev==='crit' ? 'var(--crimson)' : 'var(--amber)', flexShrink:0 }} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
+                    <span style={{ ...mono, fontSize:'0.63rem', fontWeight:700, color: a.sev==='crit' ? 'var(--crimson)' : 'var(--amber)' }}>{a.type}</span>
+                    <span style={{ ...mono, fontSize:'0.61rem', color:'var(--muted)' }}>{a.age || 'now'}</span>
                   </div>
-                  <div style={{ fontSize: '0.76rem', fontWeight: 500, color: '#f0f4ff', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
-                  <div style={{ fontSize: '0.68rem', color: '#5a6b8a' }}>{a.msg}</div>
-                  {a.hex && <div style={{ ...S.mono, fontSize: '0.58rem', color: '#3a4a64', marginTop: 4 }}>{a.hex}</div>}
+                  <div style={{ fontSize:'0.78rem', fontWeight:500, color:'var(--text)', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.name}</div>
+                  <div style={{ fontSize:'0.7rem', color:'var(--sub)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.msg}</div>
                 </div>
               </Link>
             ))}
+            {alerts.length > 6 && (
+              <Link to="/alerts" style={{ display:'block', padding:'10px 16px', textAlign:'center', fontSize:'0.75rem', color:'var(--blue)', textDecoration:'none', borderTop:'1px solid var(--border)' }}>
+                View all {alerts.length} alerts
+              </Link>
+            )}
           </div>
 
           {/* Collection queue */}
-          <div style={{ ...S.card, overflow: 'hidden' }}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #131e35' }}>
-              <span style={{ fontWeight: 600, fontSize: '0.82rem', color: '#f0f4ff' }}>Collection Queue</span>
+          <div style={{ ...card, overflow:'hidden' }}>
+            <div style={{ padding:'14px 16px', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontWeight:600, fontSize:'0.85rem', color:'var(--text)' }}>Collection Queue</span>
+              <span style={{ ...mono, fontSize:'0.62rem', color:'var(--sub)' }}>{bins.filter(b=>b.fill>=70&&b.status!=='offline').length} BINS</span>
             </div>
-            {[...BINS].filter(b => b.fill >= 70 && b.status !== 'offline').sort((a,b) => b.fill - a.fill).map((b,i) => (
-              <div key={b.id} style={{ padding: '10px 16px', borderBottom: '1px solid #08111f', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ ...S.mono, fontSize: '0.68rem', fontWeight: 600, color: '#3a4a64', minWidth: 18 }}>#{i+1}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 500, color: '#f0f4ff', marginBottom: 4 }}>{b.name}</div>
-                  <FillBar pct={b.fill} height={4} glow />
+            {[...bins].filter(b => b.fill >= 70 && b.status !== 'offline').sort((a,b) => b.fill - a.fill).map((b,i) => (
+              <Link key={b.id} to={`/fleet/${b.id}`} style={{ textDecoration:'none' }}>
+                <div style={{ padding:'10px 16px', borderBottom:'1px solid var(--ink)', display:'flex', alignItems:'center', gap:12, transition:'background 0.12s', cursor:'pointer' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--raised)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <span style={{ ...mono, fontSize:'0.68rem', fontWeight:600, color:'var(--muted)', minWidth:20 }}>#{i+1}</span>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:'0.76rem', fontWeight:500, color:'var(--text)', marginBottom:4 }}>{b.name}</div>
+                    <FillBar pct={Math.round(b.fill)} height={4} glow />
+                  </div>
+                  <span style={{ ...mono, fontSize:'0.7rem', fontWeight:700, color:fillColor(b.fill) }}>{Math.round(b.fill)}%</span>
                 </div>
-                <span style={{ ...S.mono, fontSize: '0.7rem', fontWeight: 600, color: fillColor(b.fill) }}>{b.fill}%</span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

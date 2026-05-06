@@ -6,62 +6,140 @@
 
 @layer base {
   :root {
-    --ink: #05080f;
-    --surface: #080d18;
-    --card: #0b1120;
-    --raised: #0f1729;
-    --border: #131e35;
-    --border2: #1a2840;
-    --lime: #8fff00;
-    --lime-dim: rgba(143,255,0,0.08);
-    --lime-glow: rgba(143,255,0,0.18);
-    --amber: #ffb347;
-    --crimson: #ff3b55;
-    --sky: #38bdf8;
-    --text: #f0f4ff;
-    --sub: #5a6b8a;
-    --muted: #3a4a64;
-    --mono: 'IBM Plex Mono', monospace;
-    --ui: 'Figtree', sans-serif;
+    /* ── Backgrounds ─────────────────────────────────────────── */
+    --ink:     #f0f4f8;   /* page background */
+    --surface: #ffffff;   /* sidebar / panels */
+    --card:    #ffffff;   /* cards */
+    --raised:  #f8fafc;   /* input bg, code areas */
+
+    /* ── Borders ──────────────────────────────────────────────── */
+    --border:  #e2e8f0;
+    --border2: #cbd5e1;
+
+    /* ── HandsOn Brand Blue ───────────────────────────────────── */
+    --blue:      #29ABE2;
+    --blue-dark: #1a8bbf;
+    --blue-dim:  rgba(41,171,226,0.08);
+    --blue-glow: rgba(41,171,226,0.15);
+
+    /* ── Status ───────────────────────────────────────────────── */
+    --green:   #10b981;
+    --amber:   #f59e0b;
+    --crimson: #ef4444;
+    --sky:     #0ea5e9;
+
+    /* ── Typography ───────────────────────────────────────────── */
+    --text:  #0f172a;
+    --sub:   #64748b;
+    --muted: #94a3b8;
+
+    /* ── Elevation ───────────────────────────────────────────── */
+    --shadow:    0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
+    --shadow-md: 0 4px 6px rgba(15,23,42,0.07), 0 2px 4px rgba(15,23,42,0.04);
+
+    /* ── Fonts ────────────────────────────────────────────────── */
+    --mono:    'IBM Plex Mono', monospace;
+    --ui:      'Figtree', sans-serif;
     --display: 'Syne', sans-serif;
   }
+
   body {
     background: var(--ink);
     color: var(--text);
     font-family: var(--ui);
     -webkit-font-smoothing: antialiased;
   }
+
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* ── Print / PDF report styles ────────────────────────────────────────── */
+  @media print {
+    aside, header, nav { display: none !important; }
+    main { overflow: visible !important; }
+    body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+    div[style*="boxShadow"], div[style*="box-shadow"] { box-shadow: none !important; }
+    button { display: none !important; }
+    .no-print { display: none !important; }
+    @page { margin: 1.5cm; size: A4; }
+  }
+
+  /* Keyboard focus ring */
+  :focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ── Leaflet light-theme overrides ──────────────────────────── */
+  .leaflet-container {
+    background: #e8f0f7;
+    font-family: var(--ui);
+  }
+  .leaflet-control-attribution {
+    background: rgba(255,255,255,0.85) !important;
+    color: var(--sub) !important;
+    font-size: 0.58rem !important;
+  }
+  .leaflet-control-attribution a { color: var(--blue) !important; }
+  .leaflet-control-zoom a {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border2) !important;
+    box-shadow: var(--shadow) !important;
+  }
+  .leaflet-control-zoom a:hover {
+    background: var(--raised) !important;
+    color: var(--blue) !important;
+  }
+  .leaflet-tooltip {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    color: var(--text) !important;
+    font-family: var(--ui) !important;
+    font-size: 0.8rem !important;
+    box-shadow: var(--shadow-md) !important;
+    padding: 10px 14px !important;
+  }
+  .leaflet-tooltip::before { display: none !important; }
 }
 
 @layer utilities {
   @keyframes pulse-ring {
-    0% { transform: scale(1); opacity: 0.8; }
-    70% { transform: scale(2.2); opacity: 0; }
+    0%   { transform: scale(1);   opacity: 0.8; }
+    70%  { transform: scale(2.2); opacity: 0; }
     100% { transform: scale(2.2); opacity: 0; }
   }
   @keyframes breathe {
-    0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
   }
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(12px); }
+    from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 12px rgba(143,255,0,0.15); }
-    50%       { box-shadow: 0 0 28px rgba(143,255,0,0.4); }
-  }
   @keyframes scroll-in {
-    from { opacity: 0; transform: translateX(-6px); }
+    from { opacity: 0; transform: translateX(-4px); }
     to   { opacity: 1; transform: translateX(0); }
   }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-  .slide-up  { animation: slideUp  0.35s ease both; }
-  .scroll-in { animation: scroll-in 0.25s ease both; }
+  .slide-up  { animation: slideUp   0.3s ease both; }
+  .scroll-in { animation: scroll-in 0.2s ease both; }
 
-  input[type=range] { -webkit-appearance:none; height:3px; border-radius:4px; background:var(--border2); outline:none; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--lime); cursor:pointer; box-shadow:0 0 8px var(--lime-glow); }
+  @media (prefers-reduced-motion: reduce) {
+    .slide-up, .scroll-in { animation: none !important; }
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  input[type=range] {
+    -webkit-appearance: none; height: 3px; border-radius: 4px;
+    background: var(--border2); outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--blue); cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(41,171,226,0.2);
+  }
 }

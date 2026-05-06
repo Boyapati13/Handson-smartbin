@@ -1,230 +1,204 @@
-import { useState, useEffect, useRef } from 'react'
-import { PROTOCOL_LOG, BINS, REAL_DEVICE } from '../data/bins'
+import { useState } from 'react'
+import { Play, Pause, Trash2, Radio, Cpu } from 'lucide-react'
+import { useApp } from '../context/AppContext'
+import { REAL_DEVICE } from '../data/bins'
 
-const S = { card:{background:'#0b1120',border:'1px solid #131e35',borderRadius:10}, mono:{fontFamily:'IBM Plex Mono,monospace'} }
+const mono = { fontFamily:'IBM Plex Mono, monospace' }
+const card = { background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, boxShadow:'var(--shadow)' }
 
-// Simulate live streaming by adding entries over time
-const LIVE_FRAMES = [
-  { dir:'UART→TCP', hex:'E9 09 06 01 3E 58 1C 00 00 00 00 0D 0A', decoded:'Heartbeat · fill=62% · bat=88% · temp=28°C · OK' },
-  { dir:'TCP→UART', hex:'E9 AB 00 0D 0A',                         decoded:'ACK · server confirmed receipt' },
-  { dir:'UART→TCP', hex:'E9 09 06 01 60 40 1D 00 00 00 00 0D 0A', decoded:'Fill=96% · OVERFLOW ALERT transmitted' },
-  { dir:'TCP→UART', hex:'E9 B1 01 0D 0A',                         decoded:'CMD · trigger compaction cycle' },
-  { dir:'UART→TCP', hex:'E9 09 06 03 60 40 1D 00 00 00 00 0D 0A', decoded:'Compacting · motor active' },
-  { dir:'UART→TCP', hex:'E9 09 06 01 52 40 1D 00 00 00 00 0D 0A', decoded:'Compaction complete · fill=82%' },
-  { dir:'TCP→UART', hex:'E9 AB 00 0D 0A',                         decoded:'ACK' },
-  { dir:'UART→TCP', hex:'E9 0A 06 01 1F 0C 00 00 00 00 00 0D 0A', decoded:'Fill=31% · LOW BATTERY 12% WARNING' },
-  { dir:'TCP→UART', hex:'E9 C2 01 0D 0A',                         decoded:'CMD · request diagnostics' },
+const FRAME_TYPES = [
+  { byte:'E9 09', label:'Heartbeat / Status', color:'var(--blue)'    },
+  { byte:'E9 AB', label:'Server ACK',          color:'var(--sky)'     },
+  { byte:'E9 0A', label:'Alert / Warning',     color:'var(--amber)'   },
+  { byte:'E9 0F', label:'Fault Report',        color:'var(--crimson)' },
+  { byte:'E9 B1', label:'CMD: Compact',        color:'#a78bfa'        },
+  { byte:'E9 C2', label:'CMD: Diagnostics',    color:'#a78bfa'        },
+  { byte:'E9 D0', label:'Diagnostics Data',    color:'var(--sub)'     },
 ]
 
 export default function Telemetry() {
-  const [log, setLog] = useState(PROTOCOL_LOG.map((p,i) => ({...p, id:i})))
-  const [paused, setPaused] = useState(false)
-  const [filter, setFilter] = useState('all')
-  const [selectedBin, setSelectedBin] = useState(BINS[0].id)
-  const [frameIdx, setFrameIdx] = useState(0)
-  const logRef = useRef(null)
-  const counterRef = useRef(PROTOCOL_LOG.length)
+  const { frames, connected, sendCommand, bins } = useApp()
+  const [paused,  setPaused]  = useState(false)
+  const [filter,  setFilter]  = useState('all')
 
-  // Auto-scroll
-  useEffect(() => {
-    if (logRef.current && !paused) {
-      logRef.current.scrollTop = logRef.current.scrollHeight
-    }
-  }, [log, paused])
-
-  // Live stream simulation
-  useEffect(() => {
-    if (paused) return
-    const id = setInterval(() => {
-      const now = new Date()
-      const ts = `2026-05-05 ${now.toLocaleTimeString('en-MT',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`
-      const frame = LIVE_FRAMES[frameIdx % LIVE_FRAMES.length]
-      setLog(prev => [...prev.slice(-80), { ...frame, ts, id: counterRef.current++ }])
-      setFrameIdx(f => f + 1)
-    }, 2400)
-    return () => clearInterval(id)
-  }, [paused, frameIdx])
-
-  const bin = BINS.find(b => b.id === selectedBin)
-  const filtered = log.filter(p => filter === 'all' || p.dir.startsWith(filter))
-
-  const FRAME_TYPES = [
-    { byte:'E9 09', label:'Heartbeat / Status', color:'#8fff00' },
-    { byte:'E9 AB', label:'Server ACK',         color:'#38bdf8' },
-    { byte:'E9 0A', label:'Alert / Warning',    color:'#ffb347' },
-    { byte:'E9 0F', label:'Fault Report',       color:'#ff3b55' },
-    { byte:'E9 B1', label:'CMD: Compact',       color:'#a78bfa' },
-    { byte:'E9 C2', label:'CMD: Diagnostics',  color:'#a78bfa' },
-    { byte:'E9 D0', label:'Diagnostics Data',  color:'#5a6b8a' },
-  ]
+  const display  = (paused ? [] : frames).filter(p => filter === 'all' || p.dir?.startsWith(filter))
+  const uartCount = frames.filter(p => p.dir?.startsWith('UART')).length
+  const tcpCount  = frames.filter(p => p.dir?.startsWith('TCP')).length
+  const alertCount = frames.filter(p => p.decoded?.includes('ALERT') || p.decoded?.includes('WARNING')).length
 
   return (
-    <div style={{padding:'28px 32px',animation:'slideUp 0.35s ease both'}}>
-      {/* Header */}
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24,flexWrap:'wrap',gap:12}}>
+    <div style={{ padding:'28px 32px', animation:'slideUp 0.3s ease both' }}>
+
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
-          <h1 style={{fontFamily:'Syne,sans-serif',fontSize:'1.7rem',fontWeight:700,color:'#f0f4ff',letterSpacing:'-0.02em',marginBottom:4}}>
+          <h1 style={{ fontFamily:'Syne, sans-serif', fontSize:'1.65rem', fontWeight:700, color:'var(--text)', letterSpacing:'-0.02em', marginBottom:4 }}>
             Telemetry Console
           </h1>
-          <div style={{...S.mono,fontSize:'0.7rem',color:'#5a6b8a'}}>UART ↔ TCP live protocol stream · EcoDisposer HY-CKX1</div>
+          <div style={{ ...mono, fontSize:'0.7rem', color:'var(--sub)' }}>UART ↔ TCP live protocol stream · EcoDisposer HY-CKX1</div>
         </div>
-        <div style={{display:'flex',gap:8}}>
-          <button onClick={()=>setLog(PROTOCOL_LOG.map((p,i)=>({...p,id:i})))}
-            style={{background:'transparent',border:'1px solid #1a2840',color:'#5a6b8a',fontSize:'0.76rem',fontFamily:'Figtree,sans-serif',padding:'8px 14px',borderRadius:7,cursor:'pointer'}}>
-            Clear log
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={() => {}} style={{ background:'transparent', border:'1px solid var(--border2)', color:'var(--sub)', fontSize:'0.76rem', fontFamily:'Figtree, sans-serif', padding:'8px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:6, transition:'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor='var(--crimson)'; e.currentTarget.style.color='var(--crimson)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border2)'; e.currentTarget.style.color='var(--sub)' }}>
+            <Trash2 size={13} /> Clear
           </button>
-          <button onClick={()=>setPaused(p=>!p)}
-            style={{background:paused?'#8fff00':'transparent',border:`1px solid ${paused?'#8fff00':'#1a2840'}`,
-              color:paused?'#05080f':'#5a6b8a',fontSize:'0.76rem',fontFamily:'Figtree,sans-serif',fontWeight:paused?700:400,padding:'8px 14px',borderRadius:7,cursor:'pointer'}}>
-            {paused?'▶ Resume':'⏸ Pause'}
+          <button onClick={() => setPaused(p => !p)} style={{
+            background: paused ? 'var(--blue)' : 'transparent',
+            border: `1px solid ${paused ? 'var(--blue)' : 'var(--border2)'}`,
+            color: paused ? '#fff' : 'var(--sub)',
+            fontSize:'0.76rem', fontFamily:'Figtree, sans-serif', fontWeight: paused ? 700 : 400,
+            padding:'8px 14px', borderRadius:8, cursor:'pointer',
+            display:'flex', alignItems:'center', gap:6, transition:'all 0.15s',
+          }}>
+            {paused ? <><Play size={13} /> Resume</> : <><Pause size={13} /> Pause</>}
           </button>
         </div>
       </div>
 
-      {/* Device identity card */}
-      <div style={{...S.card,padding:'18px 22px',marginBottom:20,display:'flex',gap:32,flexWrap:'wrap',alignItems:'center',
-        background:'linear-gradient(135deg,#0b1120 0%,#0d1830 100%)',borderColor:'#1a2840'}}>
-        <div style={{display:'flex',alignItems:'center',gap:12}}>
-          <div style={{width:36,height:36,borderRadius:8,background:'rgba(143,255,0,0.1)',border:'1px solid rgba(143,255,0,0.2)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <span style={{fontSize:'1.2rem'}}>📡</span>
+      {/* Device identity */}
+      <div style={{ ...card, padding:'16px 22px', marginBottom:20, display:'flex', gap:28, flexWrap:'wrap', alignItems:'center', background:'linear-gradient(135deg,#ffffff 0%,#f0f9ff 100%)', borderColor:'rgba(41,171,226,0.2)' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ width:38, height:38, borderRadius:10, background:'var(--blue-dim)', border:'1px solid var(--blue-glow)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Radio size={18} color="var(--blue)" />
           </div>
           <div>
-            <div style={{...S.mono,fontSize:'0.62rem',color:'#3a4a64',marginBottom:2}}>ACTIVE DEVICE</div>
-            <div style={{...S.mono,fontSize:'0.9rem',fontWeight:600,color:'#8fff00'}}>{REAL_DEVICE.deviceNo}</div>
+            <div style={{ ...mono, fontSize:'0.6rem', color:'var(--muted)', marginBottom:2 }}>ACTIVE DEVICE</div>
+            <div style={{ ...mono, fontSize:'0.88rem', fontWeight:700, color:'var(--blue)' }}>{REAL_DEVICE.deviceNo}</div>
           </div>
         </div>
-        {[['IMEI',REAL_DEVICE.imei],['Model',REAL_DEVICE.model],['Brand',REAL_DEVICE.brand],['Protocol','UART ↔ TCP · E9xx frame']].map(([l,v])=>(
+        {[['Model', REAL_DEVICE.model], ['Protocol','UART ↔ TCP · E9xx frame'], ['Frames received', frames.length]].map(([l,v]) => (
           <div key={l}>
-            <div style={{...S.mono,fontSize:'0.6rem',color:'#3a4a64',marginBottom:3,letterSpacing:'0.06em'}}>{l}</div>
-            <div style={{...S.mono,fontSize:'0.75rem',color:'#f0f4ff',fontWeight:500}}>{v}</div>
+            <div style={{ ...mono, fontSize:'0.6rem', color:'var(--muted)', marginBottom:3, letterSpacing:'0.06em' }}>{l.toUpperCase()}</div>
+            <div style={{ ...mono, fontSize:'0.75rem', color:'var(--text)', fontWeight:600 }}>{v}</div>
           </div>
         ))}
-        <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
-          <span style={{width:8,height:8,borderRadius:'50%',background:'#8fff00',display:'inline-block',boxShadow:'0 0 8px #8fff00',animation:'breathe 1.2s ease-in-out infinite'}}/>
-          <span style={{...S.mono,fontSize:'0.68rem',color:'#8fff00',fontWeight:600}}>{paused?'PAUSED':'STREAMING'}</span>
+        <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8 }}>
+          <span style={{ width:8, height:8, borderRadius:'50%', background: connected ? 'var(--green)' : 'var(--amber)', display:'inline-block', boxShadow: connected ? '0 0 8px #10b981' : '0 0 8px #f59e0b', animation: connected ? 'breathe 1.2s ease-in-out infinite' : 'none' }} />
+          <span style={{ ...mono, fontSize:'0.68rem', color: connected ? 'var(--green)' : 'var(--amber)', fontWeight:700 }}>
+            {connected ? 'STREAMING' : 'CONNECTING…'}
+          </span>
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 280px',gap:16}}>
-        {/* Main console */}
-        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) 270px', gap:16 }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
           {/* Filter bar */}
-          <div style={{display:'flex',gap:6,alignItems:'center'}}>
-            <span style={{...S.mono,fontSize:'0.62rem',color:'#3a4a64',marginRight:4}}>FILTER:</span>
-            {[['all','All'],['UART','UART→TCP'],['TCP','TCP→UART']].map(([v,l])=>(
-              <button key={v} onClick={()=>setFilter(v)}
-                style={{...S.mono,fontSize:'0.65rem',fontWeight:600,padding:'5px 12px',borderRadius:5,border:'1px solid',cursor:'pointer',
-                  background:filter===v?(v==='TCP'?'#38bdf8':v==='UART'?'#8fff00':'#8fff00'):'transparent',
-                  color:filter===v?'#05080f':'#5a6b8a',
-                  borderColor:filter===v?(v==='TCP'?'#38bdf8':'#8fff00'):'#1a2840'}}>
-                {l}
-              </button>
+          <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+            <span style={{ ...mono, fontSize:'0.62rem', color:'var(--muted)', marginRight:4 }}>FILTER:</span>
+            {[['all','All'],['UART','UART→TCP'],['TCP','TCP→UART']].map(([v,l]) => (
+              <button key={v} onClick={() => setFilter(v)} style={{
+                ...mono, fontSize:'0.65rem', fontWeight:600, padding:'5px 12px',
+                borderRadius:6, border:'1px solid', cursor:'pointer', transition:'all 0.15s',
+                background: filter===v ? 'var(--blue)' : 'transparent',
+                color:      filter===v ? '#fff'        : 'var(--sub)',
+                borderColor:filter===v ? 'var(--blue)' : 'var(--border2)',
+              }}>{l}</button>
             ))}
-            <span style={{...S.mono,fontSize:'0.62rem',color:'#3a4a64',marginLeft:'auto'}}>{filtered.length} FRAMES</span>
+            <span style={{ ...mono, fontSize:'0.62rem', color:'var(--muted)', marginLeft:'auto' }}>{display.length} FRAMES</span>
           </div>
 
-          {/* Log window */}
-          <div ref={logRef} style={{...S.card,height:420,overflowY:'auto',fontFamily:'IBM Plex Mono,monospace',background:'#06090f'}}>
-            <div style={{padding:'10px 0'}}>
-              {filtered.map((p,i) => {
-                const isUart = p.dir.startsWith('UART')
-                const color = isUart ? '#8fff00' : '#38bdf8'
-                const frameColor = FRAME_TYPES.find(f => p.hex.startsWith(f.byte))?.color || '#5a6b8a'
+          {/* Terminal log */}
+          <div style={{ height:420, overflowY:'auto', fontFamily:'IBM Plex Mono, monospace', background:'#0f172a', border:'1px solid #1e293b', borderRadius:12, boxShadow:'var(--shadow)' }}>
+            <div style={{ padding:'8px 0' }}>
+              {display.length === 0 && (
+                <div style={{ padding:'40px 20px', textAlign:'center', color:'#475569', fontSize:'0.78rem' }}>
+                  {connected ? 'Waiting for frames…' : 'Not connected — start the server with: npm run dev:all'}
+                </div>
+              )}
+              {display.map((p, i) => {
+                const isUart     = p.dir?.startsWith('UART')
+                const dirColor   = isUart ? '#29ABE2' : '#38bdf8'
+                const frameColor = FRAME_TYPES.find(f => p.hex?.startsWith(f.byte))?.color || '#475569'
                 return (
-                  <div key={p.id} style={{display:'flex',gap:0,padding:'5px 16px',borderBottom:'1px solid #070a10',
-                    animation:'scroll-in 0.25s ease both',
-                    background:i===filtered.length-1&&!paused?'rgba(143,255,0,0.03)':'transparent'}}>
-                    {/* Timestamp */}
-                    <span style={{fontSize:'0.65rem',color:'#3a4a64',minWidth:72,flexShrink:0}}>{p.ts?.slice(11)||'--:--:--'}</span>
-                    {/* Direction */}
-                    <span style={{fontSize:'0.65rem',fontWeight:700,color,minWidth:72,flexShrink:0}}>{p.dir}</span>
-                    {/* Hex */}
-                    <span style={{fontSize:'0.65rem',color:frameColor,flex:1,marginRight:12,wordBreak:'break-all'}}>{p.hex}</span>
-                    {/* Decoded */}
-                    <span style={{fontSize:'0.63rem',color:'#5a6b8a',minWidth:200,textAlign:'right',flexShrink:0}}>{p.decoded}</span>
+                  <div key={p.id ?? i} style={{ display:'flex', padding:'4px 16px', borderBottom:'1px solid rgba(30,41,59,0.6)', animation:'scroll-in 0.2s ease both', background: i===display.length-1 ? 'rgba(41,171,226,0.04)' : 'transparent' }}>
+                    <span style={{ fontSize:'0.63rem', color:'#475569', minWidth:74, flexShrink:0 }}>{p.ts?.slice(11)||'--:--:--'}</span>
+                    <span style={{ fontSize:'0.63rem', fontWeight:700, color:dirColor, minWidth:72, flexShrink:0 }}>{p.dir}</span>
+                    <span style={{ fontSize:'0.63rem', color: typeof frameColor === 'string' ? frameColor : '#475569', flex:1, marginRight:12, wordBreak:'break-all' }}>{p.hex}</span>
+                    <span style={{ fontSize:'0.61rem', color:'#64748b', minWidth:200, textAlign:'right', flexShrink:0 }}>{p.decoded}</span>
                   </div>
                 )
               })}
             </div>
-            {/* Cursor blink */}
-            {!paused && (
-              <div style={{padding:'5px 16px',display:'flex',gap:0}}>
-                <span style={{fontSize:'0.65rem',color:'#3a4a64',minWidth:72}}>▸</span>
-                <span style={{fontSize:'0.65rem',color:'#8fff00',animation:'breathe 1s ease-in-out infinite'}}>█</span>
+            {!paused && connected && (
+              <div style={{ padding:'4px 16px' }}>
+                <span style={{ fontSize:'0.63rem', color:'#29ABE2', animation:'breathe 1s ease-in-out infinite' }}>█</span>
               </div>
             )}
           </div>
 
-          {/* Stats strip */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}}>
-            {[
-              ['Total Frames', log.length, '#f0f4ff'],
-              ['UART→TCP', log.filter(p=>p.dir.startsWith('UART')).length, '#8fff00'],
-              ['TCP→UART', log.filter(p=>p.dir.startsWith('TCP')).length, '#38bdf8'],
-              ['Alerts', log.filter(p=>p.decoded?.includes('ALERT')||p.decoded?.includes('WARNING')).length, '#ffb347'],
-            ].map(([l,v,c])=>(
-              <div key={l} style={{...S.card,padding:'12px 14px',textAlign:'center'}}>
-                <div style={{...S.mono,fontSize:'0.58rem',color:'#3a4a64',marginBottom:4,letterSpacing:'0.06em'}}>{l.toUpperCase()}</div>
-                <div style={{...S.mono,fontSize:'1.4rem',fontWeight:600,color:c,lineHeight:1}}>{v}</div>
+          {/* Stats */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
+            {[['Total Frames',frames.length,'var(--text)'],['UART→TCP',uartCount,'var(--blue)'],['TCP→UART',tcpCount,'var(--sky)'],['Alerts',alertCount,'var(--amber)']].map(([l,v,c]) => (
+              <div key={l} style={{ ...card, padding:'12px 14px', textAlign:'center' }}>
+                <div style={{ ...mono, fontSize:'0.58rem', color:'var(--muted)', marginBottom:4, letterSpacing:'0.06em' }}>{l.toUpperCase()}</div>
+                <div style={{ ...mono, fontSize:'1.4rem', fontWeight:700, color:c, lineHeight:1 }}>{v}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Right panel */}
-        <div style={{display:'flex',flexDirection:'column',gap:14}}>
-          {/* Frame decoder */}
-          <div style={{...S.card,padding:'16px',overflow:'hidden'}}>
-            <div style={{fontWeight:600,fontSize:'0.82rem',color:'#f0f4ff',marginBottom:12}}>Frame Reference</div>
-            <div style={{fontSize:'0.65rem',color:'#3a4a64',...S.mono,marginBottom:10}}>PREFIX → TYPE</div>
-            {FRAME_TYPES.map(f=>(
-              <div key={f.byte} style={{display:'flex',alignItems:'center',gap:10,padding:'6px 0',borderBottom:'1px solid #08111f'}}>
-                <code style={{...S.mono,fontSize:'0.62rem',color:f.color,minWidth:52}}>{f.byte}</code>
-                <span style={{fontSize:'0.68rem',color:'#5a6b8a'}}>{f.label}</span>
+        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
+          {/* Frame reference */}
+          <div style={{ ...card, padding:'16px' }}>
+            <div style={{ fontWeight:600, fontSize:'0.85rem', color:'var(--text)', marginBottom:12 }}>Frame Reference</div>
+            {FRAME_TYPES.map(f => (
+              <div key={f.byte} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0', borderBottom:'1px solid var(--ink)' }}>
+                <code style={{ ...mono, fontSize:'0.62rem', color:f.color, minWidth:52 }}>{f.byte}</code>
+                <span style={{ fontSize:'0.7rem', color:'var(--sub)' }}>{f.label}</span>
               </div>
             ))}
           </div>
 
-          {/* Protocol anatomy */}
-          <div style={{...S.card,padding:'16px'}}>
-            <div style={{fontWeight:600,fontSize:'0.82rem',color:'#f0f4ff',marginBottom:12}}>Frame Anatomy</div>
-            <div style={{background:'#06090f',borderRadius:8,padding:'12px',marginBottom:10}}>
-              <div style={{...S.mono,fontSize:'0.68rem',color:'#ffb347',marginBottom:8}}>UART→TCP (Status)</div>
-              <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-                {[['E9','SOF','#8fff00'],['09','Len','#38bdf8'],['06','Type','#a78bfa'],['01','State','#ffb347'],['3E','Fill%','#ff3b55'],['58','Bat%','#8fff00'],['1C','Temp','#38bdf8'],['00','Res','#3a4a64'],['0D 0A','EOF','#5a6b8a']].map(([b,l,c])=>(
-                  <div key={b} style={{textAlign:'center'}}>
-                    <div style={{...S.mono,fontSize:'0.68rem',fontWeight:600,color:c,background:`${c}15`,border:`1px solid ${c}30`,borderRadius:4,padding:'3px 6px',marginBottom:4}}>{b}</div>
-                    <div style={{fontSize:'0.58rem',color:'#3a4a64'}}>{l}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{background:'#06090f',borderRadius:8,padding:'12px'}}>
-              <div style={{...S.mono,fontSize:'0.68rem',color:'#38bdf8',marginBottom:8}}>TCP→UART (ACK)</div>
-              <div style={{display:'flex',gap:4}}>
-                {[['E9','SOF','#8fff00'],['AB','ACK','#38bdf8'],['00','Status','#ffb347'],['0D 0A','EOF','#5a6b8a']].map(([b,l,c])=>(
-                  <div key={b} style={{textAlign:'center'}}>
-                    <div style={{...S.mono,fontSize:'0.68rem',fontWeight:600,color:c,background:`${c}15`,border:`1px solid ${c}30`,borderRadius:4,padding:'3px 6px',marginBottom:4}}>{b}</div>
-                    <div style={{fontSize:'0.58rem',color:'#3a4a64'}}>{l}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* Device commands */}
+          <div style={{ ...card, padding:'16px' }}>
+            <div style={{ fontWeight:600, fontSize:'0.85rem', color:'var(--text)', marginBottom:10 }}>Send Command</div>
+            <div style={{ ...mono, fontSize:'0.62rem', color:'var(--muted)', marginBottom:10 }}>SELECT UNIT:</div>
+            <select style={{ width:'100%', background:'var(--raised)', border:'1px solid var(--border2)', borderRadius:7, padding:'8px 10px', color:'var(--text)', fontSize:'0.78rem', marginBottom:10, fontFamily:'Figtree, sans-serif', cursor:'pointer' }}
+              id="cmd-bin">
+              {bins.map(b => (
+                <option key={b.id} value={b.id}>{b.id} — {b.name}</option>
+              ))}
+            </select>
+            {[
+              ['compact',     'Trigger Compaction',   'var(--blue)'],
+              ['diagnostics', 'Request Diagnostics',  'transparent'],
+              ['acknowledge', 'Acknowledge Alerts',   'transparent'],
+            ].map(([cmd, lbl, bg]) => (
+              <button key={cmd}
+                onClick={() => { const sel = document.getElementById('cmd-bin'); sendCommand(cmd, sel?.value || bins[0]?.id) }}
+                disabled={!connected}
+                style={{
+                  width:'100%', background: bg, color: bg !== 'transparent' ? '#fff' : 'var(--text)',
+                  border:`1px solid ${bg !== 'transparent' ? bg : 'var(--border2)'}`,
+                  fontSize:'0.78rem', fontWeight: bg !== 'transparent' ? 600 : 500,
+                  fontFamily:'Figtree, sans-serif', padding:'9px 12px', borderRadius:7,
+                  cursor: connected ? 'pointer' : 'not-allowed', marginBottom:6,
+                  textAlign:'left', transition:'all 0.15s',
+                  opacity: connected ? 1 : 0.4,
+                }}
+                onMouseEnter={e => { if (connected && bg === 'transparent') { e.currentTarget.style.borderColor='var(--blue)'; e.currentTarget.style.color='var(--blue)' } }}
+                onMouseLeave={e => { if (bg === 'transparent') { e.currentTarget.style.borderColor='var(--border2)'; e.currentTarget.style.color='var(--text)' } }}>
+                {lbl}
+              </button>
+            ))}
+            {!connected && <div style={{ ...mono, fontSize:'0.62rem', color:'var(--muted)', textAlign:'center', marginTop:4 }}>Start server to send commands</div>}
           </div>
 
-          {/* Connected bins */}
-          <div style={{...S.card,padding:'16px'}}>
-            <div style={{fontWeight:600,fontSize:'0.82rem',color:'#f0f4ff',marginBottom:10}}>Device Registry</div>
-            {BINS.map(b=>(
-              <div key={b.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid #08111f'}}>
+          {/* Device registry */}
+          <div style={{ ...card, padding:'16px' }}>
+            <div style={{ fontWeight:600, fontSize:'0.85rem', color:'var(--text)', marginBottom:10 }}>Device Registry</div>
+            {bins.map(b => (
+              <div key={b.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid var(--border)' }}>
                 <div>
-                  <div style={{...S.mono,fontSize:'0.65rem',color:'#8fff00',marginBottom:2}}>{b.deviceNo}</div>
-                  <div style={{fontSize:'0.68rem',color:'#5a6b8a'}}>{b.name}</div>
+                  <div style={{ ...mono, fontSize:'0.65rem', color:'var(--blue)', marginBottom:2, fontWeight:600 }}>{b.id}</div>
+                  <div style={{ fontSize:'0.7rem', color:'var(--sub)', maxWidth:130, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{b.name}</div>
                 </div>
-                <div style={{textAlign:'right'}}>
-                  <div style={{width:6,height:6,borderRadius:'50%',background:b.status==='offline'?'#3a4a64':'#8fff00',marginLeft:'auto',marginBottom:2,
-                    boxShadow:b.status!=='offline'?'0 0 5px #8fff00':'none'}}/>
-                  <div style={{...S.mono,fontSize:'0.58rem',color:'#3a4a64'}}>{b.status==='offline'?'OFFLINE':'LIVE'}</div>
+                <div style={{ textAlign:'right' }}>
+                  <div style={{ width:6, height:6, borderRadius:'50%', background: b.status==='offline' ? 'var(--muted)' : 'var(--green)', marginLeft:'auto', marginBottom:2, boxShadow: b.status!=='offline' ? '0 0 5px #10b981' : 'none' }} />
+                  <div style={{ ...mono, fontSize:'0.58rem', color:'var(--muted)' }}>{b.status==='offline' ? 'OFFLINE' : 'LIVE'}</div>
                 </div>
               </div>
             ))}

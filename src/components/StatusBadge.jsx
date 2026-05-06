@@ -1,7 +1,7 @@
 import { statusMap } from '../data/bins'
 
 export default function StatusBadge({ status }) {
-  const { color, label } = statusMap[status] || { color: '#3a4a64', label: 'Unknown' }
+  const { color, label } = statusMap[status] || { color: 'var(--muted)', label: 'Unknown' }
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -11,8 +11,8 @@ export default function StatusBadge({ status }) {
     }}>
       <span style={{
         width: 5, height: 5, borderRadius: '50%', background: color, display: 'inline-block',
-        boxShadow: status === 'online' ? `0 0 6px ${color}` : 'none',
-        animation: status === 'warning' ? 'breathe 1.8s ease-in-out infinite' : 'none'
+        boxShadow: (status === 'online' || status === 'full') ? `0 0 6px ${color}` : 'none',
+        animation: status === 'warning' ? 'breathe 1.8s ease-in-out infinite' : 'none',
       }} />
       {label}
     </span>
