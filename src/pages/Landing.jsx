@@ -7,20 +7,26 @@ import {
   ArrowRight, Copy, Check, ChevronDown, AlertTriangle, TrendingUp, Radio,
 } from 'lucide-react'
 
-/* ── Design tokens (landing-specific — standalone page) ── */
+/* ── Design tokens — HandsOn Systems brand palette (light/white B2B) ── */
 const C = {
-  blue:    '#29ABE2',
-  blueDim: 'rgba(41,171,226,0.12)',
-  blueBdr: 'rgba(41,171,226,0.3)',
+  blue:    '#29ABE2',                    // HandsOn brand blue
+  blueDk:  '#1a8bbf',                    // darker blue for hover
+  blueDim: 'rgba(41,171,226,0.08)',
+  blueBdr: 'rgba(41,171,226,0.22)',
   green:   '#10b981',
   amber:   '#f59e0b',
   red:     '#ef4444',
-  bg:      '#0f172a',
-  surface: '#1e293b',
-  border:  '#334155',
-  text:    '#f8fafc',
-  sub:     '#94a3b8',
-  muted:   '#64748b',
+  bg:      '#ffffff',                    // white (matches handsonsystems.com)
+  surface: '#f8fafc',                    // very light gray sections
+  surface2:'#f1f5f9',                    // slightly deeper for alternating sections
+  border:  '#e2e8f0',                    // light border
+  text:    '#0f172a',                    // dark navy text
+  sub:     '#475569',                    // medium gray
+  muted:   '#94a3b8',                    // muted gray
+  dark:    '#0f172a',                    // dark sections (hero, footer)
+  darkSurf:'#1e293b',
+  darkBdr: '#334155',
+  darkSub: '#94a3b8',
 }
 const display = { fontFamily: "'Syne', sans-serif" }
 const mono    = { fontFamily: "'IBM Plex Mono', monospace" }
@@ -220,54 +226,64 @@ export default function Landing() {
   return (
     <div style={{ minHeight: '100vh', background: C.bg, color: C.text, ...ui, overflowX: 'hidden' }}>
 
-      {/* ── Sticky header ── */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 'var(--z-top)', background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(14px)', borderBottom: `1px solid ${C.border}`, padding: '0 40px' }}>
+      {/* ── Sticky header — white like handsonsystems.com ── */}
+      <header style={{ position: 'sticky', top: 0, zIndex: 'var(--z-top)', background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #e2e8f0', padding: '0 40px', boxShadow: '0 1px 3px rgba(15,23,42,0.06)' }}>
         <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64 }}>
-          <HandsOnBadge iconSize={28} color={C.blue} subColor={C.muted} />
+          <HandsOnBadge iconSize={28} color={C.blue} subColor={C.sub} />
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={scrollToLogin}
-              style={{ background: 'transparent', border: `1px solid ${C.border}`, color: C.sub, borderRadius: 8, padding: '8px 18px', fontSize: '0.82rem', fontWeight: 500, ...ui, cursor: 'pointer' }}
+              style={{ background: 'transparent', border: '1px solid #e2e8f0', color: C.sub, borderRadius: 8, padding: '8px 18px', fontSize: '0.82rem', fontWeight: 500, ...ui, cursor: 'pointer' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = C.blue; e.currentTarget.style.color = C.blue }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.sub }}>
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = C.sub }}>
               Sign In
             </button>
             <button onClick={scrollToLogin}
               style={{ background: C.blue, border: 'none', color: '#fff', borderRadius: 8, padding: '8px 20px', fontSize: '0.82rem', fontWeight: 700, ...ui, cursor: 'pointer', boxShadow: '0 2px 10px rgba(41,171,226,0.35)' }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 18px rgba(41,171,226,0.5)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 10px rgba(41,171,226,0.35)'; e.currentTarget.style.transform = 'none' }}>
+              onMouseEnter={e => { e.currentTarget.style.background = C.blueDk; e.currentTarget.style.boxShadow = '0 4px 18px rgba(41,171,226,0.5)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.boxShadow = '0 2px 10px rgba(41,171,226,0.35)'; e.currentTarget.style.transform = 'none' }}>
               Try Demo
             </button>
           </div>
         </div>
       </header>
 
-      {/* ── CHAPTER 1: Hero — the hook ── */}
-      <section style={{ padding: 'clamp(80px, 12vw, 140px) 40px clamp(60px, 8vw, 100px)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        {/* Background glow */}
-        <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 400, background: 'radial-gradient(ellipse, rgba(41,171,226,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 820, margin: '0 auto', position: 'relative' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.blueDim, border: `1px solid ${C.blueBdr}`, borderRadius: 20, padding: '6px 16px', marginBottom: 32 }}>
+      {/* ── CHAPTER 1: Hero — full-bleed image with dark overlay ── */}
+      <section style={{ position: 'relative', overflow: 'hidden', textAlign: 'center', minHeight: 620, display: 'flex', alignItems: 'center' }}>
+        {/* Background city image */}
+        <img
+          src="https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1920&q=80"
+          alt=""
+          aria-hidden="true"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+        />
+        {/* Dark overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(10,20,44,0.88) 0%, rgba(15,30,60,0.82) 50%, rgba(10,20,44,0.9) 100%)' }} />
+        {/* Blue accent glow */}
+        <div style={{ position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%,-50%)', width: 700, height: 500, background: 'radial-gradient(ellipse, rgba(41,171,226,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: 820, margin: '0 auto', position: 'relative', padding: 'clamp(80px,12vw,140px) 40px clamp(60px,8vw,100px)', width: '100%' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(41,171,226,0.15)', border: '1px solid rgba(41,171,226,0.4)', borderRadius: 20, padding: '6px 16px', marginBottom: 32 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.blue, display: 'inline-block', animation: 'breathe 1.5s ease-in-out infinite' }} />
             <span style={{ ...mono, fontSize: '0.68rem', color: C.blue, fontWeight: 700 }}>LIVE FLEET MONITORING</span>
           </div>
-          <h1 style={{ ...display, fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 800, color: C.text, letterSpacing: '-0.04em', lineHeight: 1.1, margin: '0 0 24px' }}>
+          <h1 style={{ ...display, fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.04em', lineHeight: 1.1, margin: '0 0 24px' }}>
             Smart Waste Management,<br />
             <span style={{ color: C.blue }}>Reinvented.</span>
           </h1>
-          <p style={{ fontSize: 'clamp(1rem, 2vw, 1.15rem)', color: C.sub, lineHeight: 1.75, margin: '0 auto 44px', maxWidth: 580 }}>
+          <p style={{ fontSize: 'clamp(1rem, 2vw, 1.15rem)', color: 'rgba(255,255,255,0.78)', lineHeight: 1.75, margin: '0 auto 44px', maxWidth: 580 }}>
             Real-time telemetry, solar-powered compaction, and predictive fleet analytics — all from one dashboard.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={scrollToLogin}
-              style={{ background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '15px 36px', fontSize: '1rem', fontWeight: 700, ...ui, cursor: 'pointer', boxShadow: '0 4px 24px rgba(41,171,226,0.45)', display: 'flex', alignItems: 'center', gap: 8 }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 32px rgba(41,171,226,0.6)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(41,171,226,0.45)'; e.currentTarget.style.transform = 'none' }}>
+              style={{ background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '15px 36px', fontSize: '1rem', fontWeight: 700, ...ui, cursor: 'pointer', boxShadow: '0 4px 24px rgba(41,171,226,0.5)', display: 'flex', alignItems: 'center', gap: 8 }}
+              onMouseEnter={e => { e.currentTarget.style.background = C.blueDk; e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = C.blue; e.currentTarget.style.transform = 'none' }}>
               Launch Demo <ArrowRight size={16} />
             </button>
             <button onClick={() => document.getElementById('chapter2')?.scrollIntoView({ behavior: 'smooth' })}
-              style={{ background: 'rgba(255,255,255,0.05)', color: C.sub, border: `1px solid ${C.border}`, borderRadius: 12, padding: '15px 36px', fontSize: '1rem', fontWeight: 500, ...ui, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = C.blue; e.currentTarget.style.color = C.blue }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.sub }}>
+              style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 12, padding: '15px 36px', fontSize: '1rem', fontWeight: 500, ...ui, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, backdropFilter: 'blur(8px)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}>
               Learn more <ChevronDown size={16} />
             </button>
           </div>
@@ -585,56 +601,37 @@ export default function Landing() {
               </div>
             </FadeIn>
 
-            {/* Premium connection card + contact */}
+            {/* Contact + ready card */}
             <FadeIn direction="right" delay={80}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-                {/* Glowing connection card */}
-                <div style={{ position: 'relative', borderRadius: 20, padding: '2px', background: 'linear-gradient(135deg, rgba(41,171,226,0.6) 0%, rgba(167,139,250,0.4) 50%, rgba(16,185,129,0.4) 100%)', boxShadow: '0 0 40px rgba(41,171,226,0.15)' }}>
-                  <div style={{ background: '#0a1628', borderRadius: 18, padding: '24px 26px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: C.green, boxShadow: '0 0 10px #10b981', animation: 'breathe 1.5s ease-in-out infinite' }} />
-                        <span style={{ ...mono, fontSize: '0.65rem', color: '#10b981', fontWeight: 700, letterSpacing: '0.06em' }}>SERVER ONLINE · GCP</span>
-                      </div>
-                      <span style={{ ...mono, fontSize: '0.6rem', color: C.muted }}>us-central1-a</span>
-                    </div>
-
-                    {/* Big endpoint display */}
-                    <div style={{ background: 'rgba(41,171,226,0.06)', border: '1px solid rgba(41,171,226,0.2)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
-                      <div style={{ ...mono, fontSize: '0.58rem', color: C.muted, marginBottom: 6, letterSpacing: '0.08em' }}>TCP ENDPOINT</div>
-                      <div style={{ ...mono, fontSize: '1.35rem', fontWeight: 700, color: C.blue, letterSpacing: '-0.01em', lineHeight: 1 }}>130.211.208.47</div>
-                      <div style={{ ...mono, fontSize: '0.85rem', color: '#94a3b8', marginTop: 4 }}>: 8078</div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      {[
-                        { label: 'WebSocket', value: ':8765', color: '#a78bfa' },
-                        { label: 'HTTP API',  value: ':3001', color: C.blue },
-                        { label: 'Protocol',  value: 'E9xx UART', color: C.sub },
-                        { label: 'Uptime',    value: '99.9%', color: C.green },
-                      ].map(item => (
-                        <div key={item.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '10px 12px' }}>
-                          <div style={{ ...mono, fontSize: '0.56rem', color: C.muted, marginBottom: 4, letterSpacing: '0.06em' }}>{item.label}</div>
-                          <div style={{ ...mono, fontSize: '0.8rem', fontWeight: 700, color: item.color }}>{item.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {/* Ready to connect card */}
+                <div style={{ background: 'linear-gradient(135deg, #29ABE2 0%, #1a8bbf 100%)', borderRadius: 18, padding: '32px 28px', color: '#fff' }}>
+                  <div style={{ ...display, fontSize: '1.5rem', fontWeight: 800, marginBottom: 12, letterSpacing: '-0.03em' }}>Ready to connect?</div>
+                  <p style={{ fontSize: '0.9rem', lineHeight: 1.7, opacity: 0.88, margin: '0 0 24px', ...ui }}>
+                    Our team will configure the device endpoint and have your first SmartBin live on the dashboard within minutes.
+                  </p>
+                  <button onClick={scrollToLogin}
+                    style={{ background: '#fff', color: '#29ABE2', border: 'none', borderRadius: 10, padding: '12px 24px', fontSize: '0.88rem', fontWeight: 700, ...ui, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', transition: 'transform 0.2s ease-out' }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                    Get started now
+                  </button>
                 </div>
 
                 {/* Contact card */}
-                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: '22px 24px' }}>
-                  <div style={{ ...mono, fontSize: '0.62rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 16 }}>CONTACT HANDSON SYSTEMS</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: '26px 28px', boxShadow: '0 2px 8px rgba(15,23,42,0.06)' }}>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: C.text, marginBottom: 20, ...display }}>Contact HandsOn Systems</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {[
-                      { icon: '📞', label: '(+356) 2722 4445' },
-                      { icon: '✉️', label: 'info@handsonsystems.com' },
-                      { icon: '📍', label: 'Mosta Techno Park, Malta MST 3000' },
+                      { label: 'Phone',   value: '(+356) 2722 4445' },
+                      { label: 'Email',   value: 'info@handsonsystems.com' },
+                      { label: 'Address', value: 'MST26 Mosta Techno Park, Mosta MST 3000, Malta' },
+                      { label: 'Web',     value: 'www.handsonsystems.com' },
                     ].map(r => (
-                      <div key={r.label} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.82rem' }}>{r.icon}</span>
-                        <span style={{ fontSize: '0.8rem', color: C.sub, ...ui }}>{r.label}</span>
+                      <div key={r.label} style={{ display: 'flex', flexDirection: 'column', gap: 3, paddingBottom: 14, borderBottom: `1px solid ${C.border}` }}>
+                        <span style={{ fontSize: '0.65rem', color: C.muted, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', ...mono }}>{r.label}</span>
+                        <span style={{ fontSize: '0.88rem', color: C.sub, ...ui }}>{r.value}</span>
                       </div>
                     ))}
                   </div>
