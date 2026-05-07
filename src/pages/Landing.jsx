@@ -434,12 +434,104 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── Company Details Section ── */}
+      <section style={{ padding: 'clamp(60px,8vw,100px) 40px', background: C.bg, borderTop: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+          <FadeIn>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 48 }}>
+
+              {/* Company info */}
+              <div>
+                <HandsOnBadge iconSize={32} color={C.blue} subColor={C.muted} />
+                <p style={{ fontSize: '0.85rem', color: C.sub, lineHeight: 1.75, margin: '18px 0 20px', ...ui }}>
+                  HandsOn Systems delivers solar-powered smart waste management solutions. Real-time telemetry, predictive fleet analytics, and direct hardware integration for modern cities.
+                </p>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  {['CE', 'RoHS', 'IP54'].map(tag => (
+                    <span key={tag} style={{ ...mono, fontSize: '0.62rem', color: C.blue, background: C.blueDim, border: `1px solid ${C.blueBdr}`, borderRadius: 4, padding: '3px 8px' }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Device specs */}
+              <div>
+                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 18 }}>DEVICE SPECIFICATIONS</div>
+                {[
+                  ['Model',       'HY-CKX1 Solar Compressor'],
+                  ['Firmware',    '4.37.0 HY_HSP_ItalyCustomer'],
+                  ['Card No',     '26042400P101'],
+                  ['IMEI',        '867105074732545'],
+                  ['Protocol',    'E9xx UART over TCP/IP'],
+                  ['Power',       'Solar PV + Li-ion battery'],
+                  ['Compression', '3-slot independent compactor'],
+                  ['Connectivity','4G/LTE + WiFi + Ethernet'],
+                ].map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${C.border}`, gap: 12 }}>
+                    <span style={{ fontSize: '0.72rem', color: C.muted, ...ui }}>{k}</span>
+                    <span style={{ ...mono, fontSize: '0.68rem', color: C.sub, textAlign: 'right' }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Connection info */}
+              <div>
+                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 18 }}>SERVER CONNECTION</div>
+                <div style={{ background: '#1e293b', border: `1px solid ${C.border}`, borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
+                  {[
+                    ['TCP Host',   '130.211.208.47'],
+                    ['TCP Port',   '8078'],
+                    ['WebSocket',  '8765'],
+                    ['HTTP API',   '3001'],
+                  ].map(([k, v]) => (
+                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid rgba(51,65,85,0.6)`, gap: 12 }}>
+                      <span style={{ fontSize: '0.7rem', color: C.muted, ...ui }}>{k}</span>
+                      <span style={{ ...mono, fontSize: '0.75rem', color: C.blue, fontWeight: 700 }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 8, padding: '10px 14px' }}>
+                  <div style={{ ...mono, fontSize: '0.62rem', color: '#10b981', fontWeight: 700, marginBottom: 4 }}>HOW TO CONNECT THE DEVICE</div>
+                  <div style={{ fontSize: '0.72rem', color: C.sub, lineHeight: 1.65, ...ui }}>
+                    On the device config screen:<br />
+                    1. Set <span style={{ ...mono, color: C.blue }}>TCP IP = 130.211.208.47</span><br />
+                    2. Set <span style={{ ...mono, color: C.blue }}>Port = 8078</span><br />
+                    3. Tap <strong style={{ color: C.text }}>SAVE</strong> → restart app<br />
+                    4. Device appears live on dashboard
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div>
+                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 18 }}>CONTACT & SUPPORT</div>
+                {[
+                  ['Email',    'juhisravani.dowluri@gmail.com'],
+                  ['Platform', 'HandsOn SmartBin v2.0'],
+                  ['Server',   'GCP · us-central1-a'],
+                  ['Uptime',   '99.9% SLA'],
+                  ['Support',  '24/7 remote monitoring'],
+                  ['Protocol', 'ISO 27001 compliant'],
+                ].map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${C.border}`, gap: 12 }}>
+                    <span style={{ fontSize: '0.72rem', color: C.muted, ...ui }}>{k}</span>
+                    <span style={{ fontSize: '0.68rem', color: C.sub, textAlign: 'right', ...mono, wordBreak: 'break-all' }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* ── Footer ── */}
-      <footer style={{ padding: '28px 40px', borderTop: `1px solid ${C.border}`, background: C.bg }}>
-        <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <HandsOnBadge iconSize={22} color={C.blue} subColor={C.muted} />
-          <p style={{ fontSize: '0.73rem', color: C.muted, margin: 0, ...ui }}>
-            © {new Date().getFullYear()} HandsOn SmartBin · Solar-powered waste management platform
+      <footer style={{ padding: '24px 40px', borderTop: `1px solid ${C.border}`, background: '#080f1a' }}>
+        <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <HandsOnBadge iconSize={20} color={C.blue} subColor={C.muted} />
+          </div>
+          <p style={{ fontSize: '0.72rem', color: C.muted, margin: 0, ...ui }}>
+            © {new Date().getFullYear()} HandsOn Systems · Solar-powered waste management · All rights reserved
           </p>
         </div>
       </footer>
