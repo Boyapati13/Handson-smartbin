@@ -5,40 +5,37 @@
 
 const LOGO = '/handson_logo.png'
 
+function LogoImg({ h, maxW }) {
+  return (
+    <img
+      src={LOGO}
+      alt="HandsOn"
+      style={{
+        height:     h,
+        width:      'auto',
+        maxWidth:   maxW || 'none',
+        display:    'block',
+        objectFit:  'contain',
+        flexShrink: 0,
+      }}
+      draggable={false}
+    />
+  )
+}
+
+/** Icon-only size — used in Topbar breadcrumb */
 export function HandsOnIcon({ size = 40 }) {
-  return (
-    <img
-      src={LOGO}
-      alt="HandsOn"
-      height={size}
-      style={{ display: 'block', objectFit: 'contain', flexShrink: 0 }}
-      draggable={false}
-    />
-  )
+  return <LogoImg h={size} />
 }
 
+/** Full logo — landing page header/footer */
 export function HandsOnLogo({ height = 36 }) {
-  return (
-    <img
-      src={LOGO}
-      alt="HandsOn"
-      height={height}
-      style={{ display: 'block', objectFit: 'contain', flexShrink: 0 }}
-      draggable={false}
-    />
-  )
+  return <LogoImg h={height} />
 }
 
+/** Compact badge — sidebar (constrained to sidebar width) */
 export function HandsOnBadge({ iconSize = 30 }) {
-  return (
-    <img
-      src={LOGO}
-      alt="HandsOn"
-      height={Math.round(iconSize * 0.85)}
-      style={{ display: 'block', objectFit: 'contain', flexShrink: 0 }}
-      draggable={false}
-    />
-  )
+  return <LogoImg h={Math.round(iconSize * 0.9)} maxW={180} />
 }
 
 export default HandsOnLogo

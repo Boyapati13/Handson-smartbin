@@ -36,13 +36,10 @@ export default function Topbar() {
 
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', opacity: 0.85, transition: 'opacity 0.15s' }}
+        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', opacity: 0.85, transition: 'opacity 0.15s' }}
           onMouseEnter={e => e.currentTarget.style.opacity = '1'}
           onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}>
-          <HandsOnIcon size={20} color="#29ABE2" />
-          <span style={{ fontFamily:"'Nunito','Figtree','Syne',sans-serif", fontWeight:900, fontSize:'0.95rem', color:'#29ABE2', letterSpacing:'-0.02em', lineHeight:1 }}>
-            handson
-          </span>
+          <HandsOnIcon size={28} />
         </Link>
         {(labels[0] || isBinDetail) && (
           <>
