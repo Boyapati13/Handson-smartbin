@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { decodeFrame, parseFrames } from '../../../server/device-bridge.js';
 
 describe('decodeFrame()', () => {
-  it('decodes status frame (E9 09)', () => {
-    const buf = Buffer.from([0xE9, 0x09, 0x06, 0x01, 0x3E, 0x58, 0x1C, 0x00, 0x0D, 0x0A]);
+  it('decodes capacity frame (E9 08)', () => {
+    const buf = Buffer.from([0xE9, 0x08, 0x03, 0x3E, 0x58, 0x1C, 0x0D, 0x0A]);
     const out = decodeFrame(buf);
-    expect(out).toContain('fill=62%');
-    expect(out).toContain('bat=88%');
-    expect(out).toContain('temp=28°C');
+    expect(out).toContain('slot1=62%');
+    expect(out).toContain('slot2=88%');
+    expect(out).toContain('slot3=28%');
   });
 
   it('decodes ACK frame (E9 AB)', () => {
@@ -20,9 +20,9 @@ describe('decodeFrame()', () => {
     expect(decodeFrame(buf)).toContain('compaction');
   });
 
-  it('decodes diagnostics CMD (E9 C2)', () => {
+  it('decodes close door CMD (E9 C2)', () => {
     const buf = Buffer.from([0xE9, 0xC2, 0x01, 0x0D, 0x0A]);
-    expect(decodeFrame(buf)).toContain('diagnostics');
+    expect(decodeFrame(buf)).toContain('close door');
   });
 
   it('decodes fault frame (E9 0F)', () => {

@@ -4,14 +4,7 @@
  */
 
 export const INITIAL_BINS = [
-  { id:'HS-001', name:'Valletta City Gate',    area:'Valletta',   fill:62,  battery:88, status:'online',  cycles:18, temp:28.0, signal:4, lat:35.8997, lng:14.5147 },
-  { id:'HS-002', name:'Sliema Promenade',      area:'Sliema',     fill:96,  battery:64, status:'full',    cycles:34, temp:29.0, signal:4, lat:35.9122, lng:14.5019 },
-  { id:'HS-003', name:'Bugibba Square',        area:'Bugibba',    fill:14,  battery:92, status:'online',  cycles:6,  temp:27.0, signal:3, lat:35.9514, lng:14.4197 },
-  { id:'HS-004', name:'Mdina Main Gate',       area:'Mdina',      fill:31,  battery:12, status:'warning', cycles:9,  temp:26.0, signal:2, lat:35.8876, lng:14.4036 },
-  { id:'HS-005', name:'Mosta Rotunda',         area:'Mosta',      fill:45,  battery:71, status:'online',  cycles:12, temp:28.0, signal:4, lat:35.9097, lng:14.4261 },
-  { id:'HS-006', name:'Marsaxlokk Waterfront', area:'Marsaxlokk', fill:0,   battery:0,  status:'offline', cycles:0,  temp:0.0,  signal:0, lat:35.8419, lng:14.5436 },
-  { id:'HS-007', name:'Birgu Waterfront',      area:'Birgu',      fill:88,  battery:71, status:'fault',   cycles:29, temp:29.0, signal:3, lat:35.8928, lng:14.5228 },
-  { id:'HS-008', name:'Golden Bay Beach',      area:'Mġarr',      fill:55,  battery:55, status:'online',  cycles:15, temp:30.0, signal:3, lat:35.9481, lng:14.3378 },
+  { id:'HS-001', deviceNo:'26042400P101', imei:'867105074732545', name:'SmartBin Unit 1', area:'Site A', fill:0, battery:0, status:'offline', cycles:0, temp:0, signal:0, lat:null, lng:null },
 ];
 
 function nowTs() { return new Date().toISOString().replace('T',' ').slice(0,19); }

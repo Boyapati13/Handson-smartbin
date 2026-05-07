@@ -15,20 +15,27 @@ L.Icon.Default.mergeOptions({
 function FitBounds({ bins }) {
   const map = useMap()
   useEffect(() => {
-    if (!bins.length) return
-    const coords = bins.map(b => [b.lat, b.lng])
-    map.fitBounds(coords, { padding: [40, 40] })
+    const valid = bins.filter(b => b.lat != null && b.lng != null)
+    if (!valid.length) return
+    const coords = valid.map(b => [b.lat, b.lng])
+    try { map.fitBounds(coords, { padding: [40, 40] }) } catch {}
   }, [map, bins])
   return null
 }
 
 export default function MapView({ bins, height = 280 }) {
-  const maltaCenter = [35.895, 14.445]
+  const defaultCenter = [35.895, 14.445]
+  const validBins = bins.filter(b => b.lat != null && b.lng != null)
 
   return (
-    <div style={{ height, width: '100%', borderRadius: '0 0 10px 10px', overflow: 'hidden' }}>
+    <div style={{ height, width: '100%', borderRadius: '0 0 10px 10px', overflow: 'hidden', position: 'relative' }}>
+      {validBins.length === 0 && (
+        <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(6px)', borderRadius: 8, padding: '6px 14px', whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.65rem', color: '#94a3b8' }}>Awaiting GPS fix (frame 0x10)</span>
+        </div>
+      )}
       <MapContainer
-        center={maltaCenter}
+        center={defaultCenter}
         zoom={11}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={false}
@@ -39,8 +46,8 @@ export default function MapView({ bins, height = 280 }) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
           maxZoom={19}
         />
-        <FitBounds bins={bins} />
-        {bins.map(bin => {
+        <FitBounds bins={validBins} />
+        {validBins.map(bin => {
           const color = statusMap[bin.status]?.color ?? '#475569'
           const fc    = fillColor(bin.fill)
           return (

@@ -13,7 +13,14 @@
  *   FAULT_CODE — hardware/software error codes (motor, sensor, modem)
  */
 
-import { FAULT_CODES } from '../src/data/bins.js';
+// Fault codes inlined — simulation only
+const FAULT_CODES = {
+  0x01: { label:'Motor Overcurrent',  msg:'Compaction motor drawing excess current', sev:'crit' },
+  0x02: { label:'Motor Timeout/JAM',  msg:'Compaction cycle did not complete',        sev:'crit' },
+  0x03: { label:'Fill Sensor Failure',msg:'Ultrasonic sensor returning invalid data',  sev:'crit' },
+  0x05: { label:'Battery Critical',   msg:'Battery voltage below safe threshold',      sev:'crit' },
+  0x07: { label:'GSM Modem Fault',    msg:'4G/LTE modem unresponsive',                sev:'crit' },
+};
 
 // ── Status derivation ─────────────────────────────────────────────────────────
 export function deriveStatus(bin) {

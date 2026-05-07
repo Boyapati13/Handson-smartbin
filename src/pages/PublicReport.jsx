@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { Send, CheckCircle, MapPin, AlertTriangle, Flame, Trash2, Wrench, MessageSquare } from 'lucide-react'
 import { BINS } from '../data/bins'
+import { HandsOnLogo } from '../components/HandsOnLogo'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
@@ -66,7 +67,7 @@ export default function PublicReport() {
         <div style={{ textAlign:'center', marginBottom:32 }}>
           {/* Official HandsOn Systems logo */}
           <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', marginBottom:20, padding:'14px 24px', background:'#fff', borderRadius:12, boxShadow:'0 1px 3px rgba(15,23,42,0.08)', border:'1px solid #e2e8f0' }}>
-            <img src="/handson-logo.svg" alt="HandsOn Systems" height={32} style={{ display:'block', objectFit:'contain' }} draggable={false} />
+            <HandsOnLogo height={36} color="#29ABE2" />
           </div>
           <h1 style={{ fontFamily:'Syne, sans-serif', fontSize:'1.5rem', fontWeight:700, color:'#0f172a', marginBottom:6 }}>
             Report a SmartBin Issue

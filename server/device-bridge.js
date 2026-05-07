@@ -12,14 +12,42 @@ export function decodeFrame(buf) {
     return `Unknown frame: ${hex}`;
   }
   const type = buf[1];
+  const payload = buf.slice(3, Math.max(3, buf.length - 2));
+  const ascii = payload.toString('utf8').replace(/\0/g, '').trim();
+  const payloadHex = [...payload].map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+
+  const statusBits = (value) => {
+    const flags = [];
+    if (value & 0x01) flags.push('door=open');
+    if (value & 0x02) flags.push('overflow');
+    if (value & 0x04) flags.push('missing-bin');
+    if (value & 0x08) flags.push('motor-fault');
+    if (value & 0x10) flags.push('sensor-fault');
+    return flags.length ? flags.join(', ') : 'normal';
+  };
+
   const map = {
-    0x09: () => `Status · fill=${buf[4]}% · bat=${buf[5]}% · temp=${buf[6]}°C`,
-    0xAB: () => 'ACK · server confirmed receipt',
-    0xB1: () => 'CMD · compaction triggered',
-    0xC2: () => 'CMD · diagnostics requested',
-    0x0A: () => `Alert · fill=${buf[4]}% · bat=${buf[5]}%`,
-    0x0F: () => 'Fault report · mechanism stalled',
-    0xD0: () => `Diag · cycles=${buf[8]} · temp=${buf[6]}°C`,
+    // Device → Server frames
+    0x00: () => `Handshake · device=${ascii || payloadHex}`,
+    0x01: () => `Sensor/button · door ${(payload[0] ?? 0) & 0x0F || 1} triggered`,
+    0x04: () => `Compressor start · door ${(payload[0] ?? 0) & 0x0F || 1}`,
+    0x05: () => `Compressor done  · door ${(payload[0] ?? 0) & 0x0F || 1}`,
+    0x06: () => `Bucket status · ${[0, 1, 2].map(i => `slot${i + 1}=${statusBits(payload[i] || 0)}`).join(' · ')}`,
+    0x07: () => `Battery · voltage=${payload[0] ?? 0} · current=${payload[1] ?? 0} · level=${payload[2] ?? 0}% · temp=${payload[3] ?? 0}°C`,
+    0x08: () => `Capacity · slot1=${payload[0] ?? 0}% · slot2=${payload[1] ?? 0}% · slot3=${payload[2] ?? 0}%`,
+    0x09: () => `Counts · open=${payload.slice(0, 3).join('/')} · compress=${payload.slice(3, 6).join('/')}`,
+    0x10: () => `Location · ${ascii || payloadHex}`,
+    0x11: () => payload[0] === 0x01 ? 'Alert · jam detected' : payload[1] === 0x01 ? 'Alert · smoke detected' : `Alert · ${payloadHex}`,
+    0xAB: () => 'Heartbeat · keep-alive from device',
+    0xAC: () => 'Heartbeat · keep-alive from device (alt)',
+    // Server → Device commands
+    0xC1: () => `CMD → open deposit door ${(payload[0] ?? 0) & 0x0F || 1}`,
+    0xC2: () => `CMD → close deposit door ${(payload[0] ?? 0) & 0x0F || 1}`,
+    0xC3: () => 'CMD → read all bucket status',
+    0xC4: () => 'CMD → read battery status',
+    0xC5: () => 'CMD → read all bucket capacity',
+    0xC6: () => 'CMD → read open/compression counts',
+    0xC7: () => `CMD → set overflow distance${payload[0] !== undefined ? ` ${payload[0]}cm` : ''}`,
   };
   return (map[type] || (() => `Frame 0xE9 0x${type.toString(16).toUpperCase()})`))();
 }

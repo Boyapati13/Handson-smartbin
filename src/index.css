@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Figtree:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -39,16 +39,34 @@
 
     /* ── Fonts ────────────────────────────────────────────────── */
     --mono:    'IBM Plex Mono', monospace;
-    --ui:      'Figtree', sans-serif;
+    --ui:      'Plus Jakarta Sans', sans-serif;
     --display: 'Syne', sans-serif;
+
+    /* ── Z-index scale ───────────────────────────────────────── */
+    --z-base:    10;
+    --z-dropdown:20;
+    --z-modal:   30;
+    --z-toast:   50;
+    --z-top:     100;
   }
 
   body {
     background: var(--ink);
     color: var(--text);
     font-family: var(--ui);
+    font-size: 16px;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  * { box-sizing: border-box; }
+
+  /* Global interactive cursor */
+  button, [role="button"], a, select, label[for] { cursor: pointer; }
+
+  /* Global transition defaults — ease-out per UX guidelines */
+  button, a { transition: color 0.2s ease-out, background 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out, opacity 0.2s ease-out; }
 
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }

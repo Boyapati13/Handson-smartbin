@@ -1,23 +1,13 @@
 import { useMemo } from 'react'
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie } from 'recharts'
 import { useApp } from '../context/AppContext'
-import { WEEK_DATA, fillColor, statusMap } from '../data/bins'
+import { fillColor, statusMap, WEEK_DATA } from '../data/bins'
 import { computeRouteMetrics, formatDuration } from '../utils/routing'
 import FillBar from '../components/FillBar'
 
 const card  = { background:'var(--card)', border:'1px solid var(--border)', borderRadius:12, boxShadow:'var(--shadow)' }
 const mono  = { fontFamily:'IBM Plex Mono, monospace' }
 const label = { fontSize:'0.65rem', ...mono, color:'var(--muted)', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:6 }
-
-function ChartTooltip({ active, payload, label: day }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:8, padding:'8px 12px', boxShadow:'var(--shadow-md)', fontSize:'0.78rem' }}>
-      <div style={{ color:'var(--sub)', marginBottom:4, ...mono, fontSize:'0.65rem' }}>{day}</div>
-      <div style={{ color:'var(--blue)', fontWeight:700, ...mono }}>{payload[0].value}%</div>
-    </div>
-  )
-}
 
 function BarTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
@@ -31,7 +21,9 @@ function BarTooltip({ active, payload }) {
 }
 
 export default function Analytics() {
-  const { bins } = useApp()
+  const { bins, isDemo } = useApp()
+  const maxV = Math.max(...WEEK_DATA.map(d => d.v))
+  const avgV = Math.round(WEEK_DATA.reduce((s,d) => s + d.v, 0) / WEEK_DATA.length)
 
   // ── Derived metrics (all computed, nothing hardcoded) ───────────────────
   const liveAvg     = Math.round(bins.reduce((s,b) => s + b.fill, 0) / bins.length)
@@ -44,9 +36,6 @@ export default function Analytics() {
     const eligible = bins.filter(b => b.fill >= 70 && b.status !== 'offline')
     return computeRouteMetrics(eligible, bins)
   }, [bins])
-
-  const maxV  = Math.max(...WEEK_DATA.map(d => d.v))
-  const avgV  = Math.round(WEEK_DATA.reduce((s,d) => s + d.v, 0) / WEEK_DATA.length)
 
   const statusData = Object.entries(statusMap).map(([k, { color, label: lbl }]) => ({
     name: lbl, value: bins.filter(b => b.status === k).length, color,
@@ -90,29 +79,38 @@ export default function Analytics() {
       {/* Charts row */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:16, marginBottom:16 }}>
 
-        {/* Area trend */}
+        {/* Fill trend */}
         <div style={{ ...card, padding:'20px 22px' }}>
           <div style={{ fontSize:'0.88rem', fontWeight:600, color:'var(--text)', marginBottom:2 }}>Fill Level Trend</div>
           <div style={{ ...mono, fontSize:'0.65rem', color:'var(--sub)', marginBottom:16 }}>AVG % · LAST 7 DAYS</div>
-          <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={WEEK_DATA} margin={{ top:4, right:4, bottom:0, left:-20 }}>
-              <defs>
-                <linearGradient id="ag2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"   stopColor="#29ABE2" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#29ABE2" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="d" tick={{ fill:'var(--muted)', fontSize:10, fontFamily:'IBM Plex Mono, monospace' }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0,100]} tick={{ fill:'var(--muted)', fontSize:10, fontFamily:'IBM Plex Mono, monospace' }} axisLine={false} tickLine={false} />
-              <Tooltip content={<ChartTooltip />} cursor={{ stroke:'var(--border2)', strokeWidth:1 }} />
-              <Area type="monotone" dataKey="v" stroke="#29ABE2" strokeWidth={2} fill="url(#ag2)" dot={{ fill:'#29ABE2', r:3, strokeWidth:0 }} activeDot={{ r:5, fill:'#29ABE2', strokeWidth:0 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-          <div style={{ borderTop:'1px solid var(--border)', paddingTop:12, marginTop:8, display:'flex', gap:20 }}>
-            <div><div style={label}>7-day avg</div><div style={{ ...mono, fontSize:'1.1rem', color:'var(--blue)', fontWeight:700 }}>{avgV}%</div></div>
-            <div><div style={label}>Peak</div><div style={{ ...mono, fontSize:'1.1rem', color:'var(--amber)', fontWeight:700 }}>{maxV}%</div></div>
-          </div>
+          {isDemo ? (
+            <>
+              <ResponsiveContainer width="100%" height={160}>
+                <AreaChart data={WEEK_DATA} margin={{ top:4, right:4, bottom:0, left:-20 }}>
+                  <defs>
+                    <linearGradient id="ag2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor="#29ABE2" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#29ABE2" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="d" tick={{ fill:'var(--muted)', fontSize:10, fontFamily:'IBM Plex Mono, monospace' }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0,100]} tick={{ fill:'var(--muted)', fontSize:10, fontFamily:'IBM Plex Mono, monospace' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:8 }} cursor={{ stroke:'var(--border2)', strokeWidth:1 }} />
+                  <Area type="monotone" dataKey="v" stroke="#29ABE2" strokeWidth={2} fill="url(#ag2)" dot={{ fill:'#29ABE2', r:3, strokeWidth:0 }} activeDot={{ r:5, fill:'#29ABE2', strokeWidth:0 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+              <div style={{ borderTop:'1px solid var(--border)', paddingTop:12, marginTop:8, display:'flex', gap:20 }}>
+                <div><div style={label}>7-day avg</div><div style={{ ...mono, fontSize:'1.1rem', color:'var(--blue)', fontWeight:700 }}>{avgV}%</div></div>
+                <div><div style={label}>Peak</div><div style={{ ...mono, fontSize:'1.1rem', color:'var(--amber)', fontWeight:700 }}>{maxV}%</div></div>
+              </div>
+            </>
+          ) : (
+            <div style={{ height:160, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, color:'var(--muted)' }}>
+              <div style={{ ...mono, fontSize:'2rem', fontWeight:700, color:'var(--blue)' }}>{liveAvg}%</div>
+              <div style={{ fontSize:'0.78rem' }}>Connect device to build fill history</div>
+            </div>
+          )}
         </div>
 
         {/* Bar — per unit fill */}

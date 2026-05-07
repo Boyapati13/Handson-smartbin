@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Bell, Wifi, WifiOff, ChevronRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { HandsOnIcon } from './HandsOnLogo';
 
 const ROUTE_LABELS = {
   '/dashboard':   ['Operations Centre'],
@@ -11,6 +12,7 @@ const ROUTE_LABELS = {
   '/maintenance': ['Maintenance'],
   '/reports':     ['Reports'],
   '/telemetry':   ['Telemetry Console'],
+  '/device':        ['Live Device Monitor'],
   '/public-report': ['Public Report'],
 };
 
@@ -34,10 +36,13 @@ export default function Topbar() {
 
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', opacity: 0.8, transition: 'opacity 0.15s' }}
+        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', opacity: 0.85, transition: 'opacity 0.15s' }}
           onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.8'}>
-          <img src="/handson-logo.svg" alt="HandsOn Systems" height={20} style={{ display:'block', objectFit:'contain' }} draggable={false} />
+          onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}>
+          <HandsOnIcon size={20} color="#29ABE2" />
+          <span style={{ fontFamily:"'Nunito','Figtree','Syne',sans-serif", fontWeight:900, fontSize:'0.95rem', color:'#29ABE2', letterSpacing:'-0.02em', lineHeight:1 }}>
+            handson
+          </span>
         </Link>
         {(labels[0] || isBinDetail) && (
           <>

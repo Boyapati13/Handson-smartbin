@@ -10,7 +10,9 @@
       "Bash(Get-Content \"C:\\\\Users\\\\Tenders\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Tenders-Handson-smartbin\\\\e075c39a-3089-4e12-97c2-e15358f0f20b\\\\tasks\\\\b788tliyl.output\")",
       "Skill(browse)",
       "Skill(browse:*)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(node server/index.js)",
+      "Bash(timeout 3 node server/dns-spoof.js)"
     ]
   }
 }

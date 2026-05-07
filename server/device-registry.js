@@ -1,0 +1,31 @@
+/**
+ * Device registry — maps real equipment card numbers to fleet bin IDs.
+ * Add each physical device here as you deploy it.
+ *
+ * Equipment card number comes from the device configuration screen
+ * ("Equipment card number" field).
+ */
+
+export const DEVICE_REGISTRY = {
+  '26042400P101': { cardNumber: '26042400P101', imei: '867105074732545', binId: 'HS-001', name: 'Valletta City Gate'    },
+  '26042400P102': { binId: 'HS-002', name: 'Sliema Promenade'      },
+  '26042400P103': { binId: 'HS-003', name: 'Bugibba Square'        },
+  '26042400P104': { binId: 'HS-004', name: 'Mdina Main Gate'       },
+  '26042400P105': { binId: 'HS-005', name: 'Mosta Rotunda'         },
+  '26042400P106': { binId: 'HS-006', name: 'Marsaxlokk Waterfront' },
+  '26042400P107': { binId: 'HS-007', name: 'Birgu Waterfront'      },
+  '26042400P108': { binId: 'HS-008', name: 'Golden Bay Beach'      },
+};
+
+/** Resolve equipment card number or IMEI to bin ID. Returns null if unknown. */
+export function resolveDevice(cardOrImei) {
+  if (!cardOrImei) return null;
+  const id = cardOrImei.trim();
+  const entry = Object.values(DEVICE_REGISTRY).find(device => (
+    device.cardNumber === id || device.imei === id
+  )) || DEVICE_REGISTRY[id];
+  return entry ? { ...entry } : null;
+}
+
+/** All registered card numbers */
+export const KNOWN_CARDS = Object.keys(DEVICE_REGISTRY);

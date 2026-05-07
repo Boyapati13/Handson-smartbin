@@ -1,25 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 100" fill="none">
-  <!-- Hand / cursor icon — recreated from official handson logo -->
-  <g>
-    <!-- Palm base -->
-    <path d="M14 58 C14 52 18 48 24 48 L52 48 C58 48 62 52 62 58 L62 76 C62 84 56 88 48 88 L28 88 C20 88 14 84 14 78 Z" fill="#29ABE2"/>
-    <!-- Index finger (pointing right, tallest) -->
-    <rect x="28" y="10" width="10" height="44" rx="5" fill="#29ABE2"/>
-    <!-- Middle finger -->
-    <rect x="40" y="16" width="10" height="38" rx="5" fill="#29ABE2"/>
-    <!-- Ring finger -->
-    <rect x="16" y="22" width="10" height="32" rx="5" fill="#29ABE2"/>
-    <!-- Pinky -->
-    <rect x="4"  y="30" width="9"  height="26" rx="4.5" fill="#29ABE2"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160">
+  <!--
+    HandsOn Systems — Official Logo Recreation
+    Hand cursor icon + "handson" bold rounded wordmark
+    Brand colour: #29ABE2
+  -->
 
-  <!-- "handson" wordmark — bold rounded lettering -->
-  <text
-    x="76" y="76"
-    font-family="'Nunito', 'Figtree', 'Poppins', 'Syne', sans-serif"
-    font-weight="900"
-    font-size="68"
+  <!-- ════ HAND ICON ════════════════════════════════════════════════════ -->
+  <!--
+    Pointing cursor hand — index finger extended right toward the text.
+    One unified filled path: traces the silhouette clockwise from the
+    top-left of the index finger base.
+  -->
+  <path
+    d="
+      M 22 12
+      C 22 6  28 2  36 2
+      L 88 2
+      C 96 2  102 6  102 12
+      L 102 38
+      C 102 44  96 48  88 48
+      L 72 48
+      L 72 56
+      C 72 62  67 67  60 67
+      L 46 67
+      C 40 67  34 62  34 56
+      L 34 50
+      L 26 50
+      C 12 50  2 62  2 78
+      L 2 128
+      C 2 140  10 148  22 148
+      L 60 148
+      C 72 148  82 140  82 128
+      L 82 78
+      C 82 74  86 70  90 70
+      C 100 70  108 78  108 90
+      L 108 118
+      C 108 124  112 128  118 128
+      C 124 128  128 124  128 118
+      L 128 80
+      C 128 62  116 48  98 44
+      L 98 12
+      C 98 6  92 2  84 2
+      Z
+    "
     fill="#29ABE2"
-    letter-spacing="-1"
+    stroke="none"
+  />
+
+  <!-- ════ "handson" WORDMARK ══════════════════════════════════════════ -->
+  <text
+    x="152"
+    y="120"
+    font-family="'Nunito', 'Figtree', 'Poppins', 'Rounded Mplus 1c', sans-serif"
+    font-weight="900"
+    font-size="106"
+    fill="#29ABE2"
+    letter-spacing="-2"
+    dominant-baseline="auto"
   >handson</text>
 </svg>

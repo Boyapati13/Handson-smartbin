@@ -7,6 +7,8 @@
     "dev": "vite",
     "server": "node server/index.js",
     "dev:all": "concurrently --names \"UI,WS\" --prefix-colors \"cyan,green\" \"npm run dev\" \"npm run server\"",
+    "dns": "node server/dns-spoof.js",
+    "start:full": "concurrently --names \"UI,WS,DNS\" --prefix-colors \"cyan,green,yellow\" \"npm run dev\" \"npm run server\" \"npm run dns\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -20,6 +22,7 @@
   "dependencies": {
     "concurrently": "^9.2.1",
     "cors": "^2.8.6",
+    "dns2": "^2.1.0",
     "express": "^5.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.14.0",
