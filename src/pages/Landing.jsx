@@ -358,39 +358,79 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── CHAPTER 4: How it works — protocol strip ── */}
+      {/* ── CHAPTER 4: How it works — protocol stream ── */}
       <section style={{ padding: 'clamp(70px,10vw,120px) 40px' }}>
         <div style={{ maxWidth: 1140, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
           <FadeIn direction="left">
             <div style={{ ...mono, fontSize: '0.68rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 16 }}>HARDWARE INTEGRATION</div>
             <h2 style={{ ...display, fontSize: 'clamp(1.6rem,3.5vw,2.2rem)', fontWeight: 800, color: C.text, letterSpacing: '-0.03em', margin: '0 0 18px', lineHeight: 1.25 }}>
-              Direct connection to the HY-CKX1 compressor unit
+              Native protocol. Zero latency. Live from the field.
             </h2>
-            <p style={{ fontSize: '0.9rem', color: C.sub, lineHeight: 1.75, margin: '0 0 28px' }}>
-              The platform speaks the native E9xx UART protocol. Raw telemetry frames are parsed and displayed the moment they arrive — no middleware, no polling delay.
+            <p style={{ fontSize: '0.9rem', color: C.sub, lineHeight: 1.75, margin: '0 0 32px' }}>
+              The platform speaks the device's native E9xx UART protocol directly. Telemetry frames are parsed and surfaced in real time — no polling, no middleware, no delay.
             </p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {['IMEI handshake','Heartbeat ACK','Smoke alert','GPS location','Battery state'].map(tag => (
-                <span key={tag} style={{ ...mono, fontSize: '0.65rem', color: C.blue, background: C.blueDim, border: `1px solid ${C.blueBdr}`, borderRadius: 6, padding: '4px 10px' }}>{tag}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {[
+                { dot: C.green,  label: 'Sub-second delivery',  desc: "Every heartbeat ACK'd within 1 frame cycle" },
+                { dot: C.blue,   label: 'Full frame parsing',    desc: 'Fill, battery, door state, GPS, smoke alerts' },
+                { dot: '#a78bfa', label: 'Bidirectional control', desc: 'Send commands — open door, read capacity, set overflow distance' },
+              ].map(item => (
+                <div key={item.label} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <div style={{ width: 9, height: 9, borderRadius: '50%', background: item.dot, boxShadow: `0 0 8px ${item.dot}`, flexShrink: 0, marginTop: 5 }} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.85rem', color: C.text, marginBottom: 2, ...ui }}>{item.label}</div>
+                    <div style={{ fontSize: '0.78rem', color: C.muted, ...ui }}>{item.desc}</div>
+                  </div>
+                </div>
               ))}
             </div>
           </FadeIn>
+
           <FadeIn direction="right" delay={100}>
-            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: '20px', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${C.border}` }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: C.green, boxShadow: `0 0 6px ${C.green}` }} />
-                <span style={{ ...mono, fontSize: '0.65rem', color: C.sub }}>LIVE PROTOCOL STREAM</span>
-              </div>
-              {LOG_ROWS.map((row, i) => (
-                <div key={i} style={{ display: 'flex', gap: 10, padding: '5px 0', borderBottom: i < LOG_ROWS.length - 1 ? `1px solid rgba(51,65,85,0.5)` : 'none' }}>
-                  <span style={{ ...mono, fontSize: '0.6rem', color: C.muted, minWidth: 60 }}>16:10:{String(13 + i).padStart(2,'0')}</span>
-                  <span style={{ ...mono, fontSize: '0.6rem', color: row.color, minWidth: 70, fontWeight: 700 }}>{row.dir}</span>
-                  <span style={{ ...mono, fontSize: '0.6rem', color: C.sub, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.hex}</span>
-                  <span style={{ ...mono, fontSize: '0.58rem', color: C.muted, minWidth: 140, textAlign: 'right', flexShrink: 0 }}>{row.decoded}</span>
+            {/* Glassmorphism terminal card */}
+            <div style={{ borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(41,171,226,0.2)', boxShadow: '0 0 0 1px rgba(41,171,226,0.05), 0 24px 64px rgba(0,0,0,0.5)', background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(20px)' }}>
+              {/* Window chrome */}
+              <div style={{ background: 'rgba(30,41,59,0.9)', padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid rgba(51,65,85,0.6)' }}>
+                <div style={{ display: 'flex', gap: 7 }}>
+                  {['#ef4444','#f59e0b','#10b981'].map(col => (
+                    <div key={col} style={{ width: 11, height: 11, borderRadius: '50%', background: col, opacity: 0.85 }} />
+                  ))}
                 </div>
-              ))}
-              <div style={{ paddingTop: 8 }}>
-                <span style={{ ...mono, fontSize: '0.62rem', color: C.blue, animation: 'breathe 1s ease-in-out infinite' }}>█</span>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: C.green, boxShadow: '0 0 8px #10b981', animation: 'breathe 1.5s ease-in-out infinite' }} />
+                  <span style={{ ...mono, fontSize: '0.63rem', color: '#94a3b8', letterSpacing: '0.06em' }}>LIVE PROTOCOL STREAM · HY-CKX1</span>
+                </div>
+                <div style={{ ...mono, fontSize: '0.58rem', color: C.muted }}>TCP:8078</div>
+              </div>
+
+              {/* Log rows */}
+              <div style={{ padding: '14px 0' }}>
+                {LOG_ROWS.map((row, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 18px', borderBottom: i < LOG_ROWS.length - 1 ? '1px solid rgba(30,41,59,0.7)' : 'none', transition: 'background 0.15s', background: 'transparent' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(41,171,226,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <span style={{ ...mono, fontSize: '0.6rem', color: '#475569', minWidth: 58, flexShrink: 0 }}>16:10:{String(13 + i).padStart(2,'0')}</span>
+                    <span style={{ ...mono, fontSize: '0.6rem', color: row.color, minWidth: 72, fontWeight: 700, flexShrink: 0, textShadow: `0 0 8px ${row.color}60` }}>{row.dir}</span>
+                    <span style={{ ...mono, fontSize: '0.6rem', color: '#64748b', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.hex}</span>
+                    <span style={{ ...mono, fontSize: '0.58rem', color: '#94a3b8', minWidth: 148, textAlign: 'right', flexShrink: 0 }}>{row.decoded}</span>
+                  </div>
+                ))}
+                <div style={{ padding: '8px 18px' }}>
+                  <span style={{ ...mono, fontSize: '0.65rem', color: C.blue, animation: 'breathe 1s ease-in-out infinite' }}>█</span>
+                </div>
+              </div>
+
+              {/* Status bar */}
+              <div style={{ background: 'rgba(41,171,226,0.06)', borderTop: '1px solid rgba(41,171,226,0.15)', padding: '8px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 16 }}>
+                  {[['UART→TCP','4'],['TCP→UART','2'],['Alerts','1']].map(([k,v]) => (
+                    <div key={k} style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                      <span style={{ ...mono, fontSize: '0.55rem', color: C.muted }}>{k}</span>
+                      <span style={{ ...mono, fontSize: '0.62rem', color: C.blue, fontWeight: 700 }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <span style={{ ...mono, fontSize: '0.55rem', color: C.muted }}>E9xx · ACK OK</span>
               </div>
             </div>
           </FadeIn>
@@ -505,76 +545,104 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Contact & Device connection ── */}
-      <section style={{ padding: 'clamp(60px,8vw,90px) 40px', background: C.surface, borderTop: `1px solid ${C.border}` }}>
+      {/* ── Deploy & Connect ── */}
+      <section style={{ padding: 'clamp(70px,10vw,110px) 40px', background: C.surface, borderTop: `1px solid ${C.border}` }}>
         <div style={{ maxWidth: 1140, margin: '0 auto' }}>
           <FadeIn>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 40 }}>
+            <div style={{ textAlign: 'center', marginBottom: 56 }}>
+              <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 14 }}>DEPLOYMENT</div>
+              <h2 style={{ ...display, fontSize: 'clamp(1.8rem,4vw,2.4rem)', fontWeight: 800, color: C.text, letterSpacing: '-0.03em', margin: '0 0 14px' }}>
+                Live in under 5 minutes
+              </h2>
+              <p style={{ fontSize: '0.92rem', color: C.sub, maxWidth: 480, margin: '0 auto', lineHeight: 1.7, ...ui }}>
+                No special hardware, no complex setup. Point the device at our server and it connects automatically.
+              </p>
+            </div>
+          </FadeIn>
 
-              {/* Contact */}
-              <div>
-                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 20 }}>GET IN TOUCH</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {[
-                    { label: 'Phone',   value: '(+356) 2722 4445' },
-                    { label: 'Email',   value: 'info@handsonsystems.com' },
-                    { label: 'Address', value: 'MST26 Mosta Techno Park, Mosta MST 3000, Malta' },
-                    { label: 'Web',     value: 'www.handsonsystems.com' },
-                  ].map(r => (
-                    <div key={r.label}>
-                      <div style={{ ...mono, fontSize: '0.6rem', color: C.muted, marginBottom: 3 }}>{r.label}</div>
-                      <div style={{ fontSize: '0.82rem', color: C.sub, ...ui }}>{r.value}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'start' }}>
 
-              {/* Device specs */}
-              <div>
-                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 20 }}>DEVICE SPECIFICATIONS</div>
+            {/* 3-step setup */}
+            <FadeIn direction="left">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
-                  ['Model',        'HY-CKX1 Solar Compressor'],
-                  ['Firmware',     '4.37.0 HY_HSP_ItalyCustomer'],
-                  ['Card No',      '26042400P101'],
-                  ['IMEI',         '867105074732545'],
-                  ['Protocol',     'E9xx UART over TCP/IP'],
-                  ['Connectivity', '4G/LTE + WiFi + Ethernet'],
-                  ['Certifications','CE · RoHS · IP54'],
-                ].map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${C.border}`, gap: 12 }}>
-                    <span style={{ fontSize: '0.72rem', color: C.muted, ...ui }}>{k}</span>
-                    <span style={{ ...mono, fontSize: '0.68rem', color: C.sub, textAlign: 'right' }}>{v}</span>
+                  { n: '01', title: 'Open device config screen', desc: 'On the HY-CKX1 Android panel, go to Basic Information Configuration.', color: C.blue },
+                  { n: '02', title: 'Enter the server endpoint',  desc: 'Set TCP IP to 130.211.208.47 and Port to 8078. Tap SAVE.', color: '#a78bfa' },
+                  { n: '03', title: 'Restart and go live',        desc: 'Restart the device app. It handshakes with our server and appears live on the dashboard within seconds.', color: C.green },
+                ].map((step, i) => (
+                  <div key={step.n} style={{ display: 'flex', gap: 18, padding: '22px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color 0.2s ease-out, box-shadow 0.2s ease-out' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = step.color; e.currentTarget.style.boxShadow = `0 4px 24px ${step.color}20` }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = 'none' }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: `${step.color}15`, border: `1px solid ${step.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ ...mono, fontSize: '0.78rem', color: step.color, fontWeight: 800 }}>{step.n}</span>
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: C.text, marginBottom: 6, ...ui }}>{step.title}</div>
+                      <div style={{ fontSize: '0.8rem', color: C.muted, lineHeight: 1.65, ...ui }}>{step.desc}</div>
+                    </div>
                   </div>
                 ))}
               </div>
+            </FadeIn>
 
-              {/* Connection */}
-              <div>
-                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 20 }}>DEVICE CONNECTION</div>
-                <div style={{ background: '#0f172a', border: `1px solid ${C.border}`, borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
-                  {[
-                    ['TCP Host',  '130.211.208.47'],
-                    ['TCP Port',  '8078'],
-                    ['WebSocket', '8765'],
-                    ['HTTP API',  '3001'],
-                    ['Server',    'GCP · us-central1-a'],
-                  ].map(([k, v]) => (
-                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid rgba(51,65,85,0.5)`, gap: 12 }}>
-                      <span style={{ fontSize: '0.7rem', color: C.muted, ...ui }}>{k}</span>
-                      <span style={{ ...mono, fontSize: '0.72rem', color: C.blue, fontWeight: 700 }}>{v}</span>
+            {/* Premium connection card + contact */}
+            <FadeIn direction="right" delay={80}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                {/* Glowing connection card */}
+                <div style={{ position: 'relative', borderRadius: 20, padding: '2px', background: 'linear-gradient(135deg, rgba(41,171,226,0.6) 0%, rgba(167,139,250,0.4) 50%, rgba(16,185,129,0.4) 100%)', boxShadow: '0 0 40px rgba(41,171,226,0.15)' }}>
+                  <div style={{ background: '#0a1628', borderRadius: 18, padding: '24px 26px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: C.green, boxShadow: '0 0 10px #10b981', animation: 'breathe 1.5s ease-in-out infinite' }} />
+                        <span style={{ ...mono, fontSize: '0.65rem', color: '#10b981', fontWeight: 700, letterSpacing: '0.06em' }}>SERVER ONLINE · GCP</span>
+                      </div>
+                      <span style={{ ...mono, fontSize: '0.6rem', color: C.muted }}>us-central1-a</span>
                     </div>
-                  ))}
-                </div>
-                <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 10, padding: '12px 16px' }}>
-                  <div style={{ ...mono, fontSize: '0.6rem', color: '#10b981', fontWeight: 700, marginBottom: 6 }}>HOW TO CONNECT</div>
-                  <div style={{ fontSize: '0.75rem', color: C.sub, lineHeight: 1.7, ...ui }}>
-                    On device config screen → set TCP IP to <span style={{ ...mono, color: C.blue }}>130.211.208.47</span>, Port <span style={{ ...mono, color: C.blue }}>8078</span> → SAVE → restart app.
+
+                    {/* Big endpoint display */}
+                    <div style={{ background: 'rgba(41,171,226,0.06)', border: '1px solid rgba(41,171,226,0.2)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
+                      <div style={{ ...mono, fontSize: '0.58rem', color: C.muted, marginBottom: 6, letterSpacing: '0.08em' }}>TCP ENDPOINT</div>
+                      <div style={{ ...mono, fontSize: '1.35rem', fontWeight: 700, color: C.blue, letterSpacing: '-0.01em', lineHeight: 1 }}>130.211.208.47</div>
+                      <div style={{ ...mono, fontSize: '0.85rem', color: '#94a3b8', marginTop: 4 }}>: 8078</div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      {[
+                        { label: 'WebSocket', value: ':8765', color: '#a78bfa' },
+                        { label: 'HTTP API',  value: ':3001', color: C.blue },
+                        { label: 'Protocol',  value: 'E9xx UART', color: C.sub },
+                        { label: 'Uptime',    value: '99.9%', color: C.green },
+                      ].map(item => (
+                        <div key={item.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '10px 12px' }}>
+                          <div style={{ ...mono, fontSize: '0.56rem', color: C.muted, marginBottom: 4, letterSpacing: '0.06em' }}>{item.label}</div>
+                          <div style={{ ...mono, fontSize: '0.8rem', fontWeight: 700, color: item.color }}>{item.value}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-            </div>
-          </FadeIn>
+                {/* Contact card */}
+                <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: '22px 24px' }}>
+                  <div style={{ ...mono, fontSize: '0.62rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 16 }}>CONTACT HANDSON SYSTEMS</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {[
+                      { icon: '📞', label: '(+356) 2722 4445' },
+                      { icon: '✉️', label: 'info@handsonsystems.com' },
+                      { icon: '📍', label: 'Mosta Techno Park, Malta MST 3000' },
+                    ].map(r => (
+                      <div key={r.label} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.82rem' }}>{r.icon}</span>
+                        <span style={{ fontSize: '0.8rem', color: C.sub, ...ui }}>{r.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            </FadeIn>
+          </div>
         </div>
       </section>
 
