@@ -3,7 +3,17 @@
  *
  * Uses a nearest-neighbour TSP heuristic starting from the highest-fill bin.
  * All geo calculations use the Haversine formula.
+ *
+ * Bins without valid GPS coordinates are silently excluded — routing only
+ * operates on bins with known positions.
  */
+
+/** Returns true only if a bin has valid, finite GPS coordinates. */
+export function hasValidCoords(bin) {
+  return bin != null &&
+    bin.lat != null && bin.lng != null &&
+    Number.isFinite(Number(bin.lat)) && Number.isFinite(Number(bin.lng));
+}
 
 const TRUCK_SPEED_KMH   = 25;   // average urban Malta collection speed
 const STOP_TIME_MIN     = 10;   // minutes per bin stop (empty + move off)
@@ -70,14 +80,15 @@ export function fixedScheduleDistance(allBins) {
 
 /**
  * Compute full route metrics for a set of bins to collect.
- * Returns null if no bins selected.
+ * Returns null if no bins selected or none have valid GPS coordinates.
  */
 export function computeRouteMetrics(selectedBins, allBins) {
-  if (!selectedBins.length) return null;
+  const geoSelected = selectedBins.filter(hasValidCoords);
+  if (!geoSelected.length) return null;
 
-  const route        = nearestNeighbour(selectedBins);
+  const route        = nearestNeighbour(geoSelected);
   const optDist      = routeDistance(route);
-  const fixedDist    = fixedScheduleDistance(allBins);
+  const fixedDist    = fixedScheduleDistance(allBins.filter(hasValidCoords));
   const savingsPct   = fixedDist > 0
     ? Math.max(0, Math.round((1 - optDist / fixedDist) * 100))
     : 0;

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Send, MapPin, Clock, Fuel, Leaf, TrendingDown, ChevronRight } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { fillColor } from '../data/bins'
-import { computeRouteMetrics, formatDuration } from '../utils/routing'
+import { computeRouteMetrics, formatDuration, hasValidCoords } from '../utils/routing'
 import FillBar    from '../components/FillBar'
 import StatusBadge from '../components/StatusBadge'
 import RouteMap   from '../components/RouteMap'
@@ -18,9 +18,16 @@ export default function Routes() {
   const [dispatched,  setDispatched]  = useState(false)
   const [dispatchedAt, setDispatchedAt] = useState(null)
 
-  // Bins eligible for collection
+  const noGPSAnywhere = bins.every(b => !hasValidCoords(b))
+
+  // Bins eligible for collection — must have GPS, be above threshold and operational
   const eligible = useMemo(
-    () => bins.filter(b => b.fill >= threshold && b.status !== 'offline' && b.status !== 'fault'),
+    () => bins.filter(b =>
+      hasValidCoords(b) &&
+      b.fill >= threshold &&
+      b.status !== 'offline' &&
+      b.status !== 'fault'
+    ),
     [bins, threshold]
   )
 
@@ -53,6 +60,17 @@ export default function Routes() {
           Nearest-neighbour optimisation · live fill data · {bins.filter(b=>b.status!=='offline').length} units active
         </div>
       </div>
+
+      {/* No GPS warning — device hasn't sent position frame yet */}
+      {noGPSAnywhere && (
+        <div style={{ ...card, padding: '14px 18px', marginBottom: 20, borderColor: 'rgba(245,158,11,0.35)', background: 'rgba(245,158,11,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <MapPin size={16} color="var(--amber)" style={{ flexShrink: 0 }} />
+          <div style={{ fontSize: '0.82rem', color: 'var(--sub)' }}>
+            No GPS coordinates received yet. Route planning activates once the device sends a location frame (E9 10).
+            <span style={{ ...mono, fontSize: '0.72rem', color: 'var(--muted)', marginLeft: 8 }}>Demo mode shows full Malta routes.</span>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div style={{ ...card, padding: '22px 24px', marginBottom: 20 }}>

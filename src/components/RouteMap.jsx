@@ -11,29 +11,43 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
+function hasCoords(bin) {
+  return bin && bin.lat != null && bin.lng != null &&
+         Number.isFinite(bin.lat) && Number.isFinite(bin.lng);
+}
+
 function FitRoute({ route, allBins }) {
   const map = useMap()
   useEffect(() => {
-    const coords = (route.length > 0 ? route : allBins).map(b => [b.lat, b.lng])
-    if (coords.length) map.fitBounds(coords, { padding: [40, 40] })
+    const source = route.length > 0 ? route : allBins
+    const coords = source.filter(hasCoords).map(b => [b.lat, b.lng])
+    if (!coords.length) return
+    try { map.fitBounds(coords, { padding: [40, 40] }) } catch {}
   }, [map, route, allBins])
   return null
 }
 
 export default function RouteMap({ route = [], allBins = [], height = 340 }) {
-  const maltaCenter = [35.895, 14.445]
-  const routeCoords = route.map(b => [b.lat, b.lng])
+  const defaultCenter = [35.895, 14.445]
+  const validRoute    = route.filter(hasCoords)
+  const validAll      = allBins.filter(hasCoords)
+  const routeCoords   = validRoute.map(b => [b.lat, b.lng])
+  const noGPS         = allBins.length > 0 && validAll.length === 0
 
   return (
-    <div style={{ height, width: '100%', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
-      <MapContainer center={maltaCenter} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+    <div style={{ height, width: '100%', borderRadius: '0 0 12px 12px', overflow: 'hidden', position: 'relative' }}>
+      {noGPS && (
+        <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(6px)', borderRadius: 8, padding: '6px 14px', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.65rem', color: '#94a3b8' }}>Awaiting GPS fix from device (frame 0x10)</span>
+        </div>
+      )}
+      <MapContainer center={defaultCenter} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; OpenStreetMap &copy; CARTO'
         />
-        <FitRoute route={route} allBins={allBins} />
+        <FitRoute route={validRoute} allBins={validAll} />
 
-        {/* Dashed route line between stops */}
         {routeCoords.length > 1 && (
           <Polyline
             positions={routeCoords}
@@ -41,11 +55,10 @@ export default function RouteMap({ route = [], allBins = [], height = 340 }) {
           />
         )}
 
-        {/* All bins — greyed out if not in route */}
-        {allBins.map(bin => {
-          const inRoute = route.some(r => r.id === bin.id)
+        {validAll.map(bin => {
+          const inRoute = validRoute.some(r => r.id === bin.id)
           const color   = inRoute ? (statusMap[bin.status]?.color ?? '#475569') : '#cbd5e1'
-          const order   = route.findIndex(r => r.id === bin.id) + 1
+          const order   = validRoute.findIndex(r => r.id === bin.id) + 1
           return (
             <CircleMarker
               key={bin.id}
@@ -82,17 +95,6 @@ export default function RouteMap({ route = [], allBins = [], height = 340 }) {
             </CircleMarker>
           )
         })}
-
-        {/* Stop number labels */}
-        {route.map((bin, i) => (
-          <CircleMarker
-            key={`label-${bin.id}`}
-            center={[bin.lat, bin.lng]}
-            radius={0}
-            fillOpacity={0}
-            opacity={0}
-          />
-        ))}
       </MapContainer>
     </div>
   )
