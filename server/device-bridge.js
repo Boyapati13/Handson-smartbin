@@ -16,13 +16,14 @@ export function decodeFrame(buf) {
   const ascii = payload.toString('utf8').replace(/\0/g, '').trim();
   const payloadHex = [...payload].map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
 
+  // Bit0=0 → door open, Bit1-4=0 → fault/abnormal (inverted polarity per protocol PDF)
   const statusBits = (value) => {
     const flags = [];
-    if (value & 0x01) flags.push('door=open');
-    if (value & 0x02) flags.push('overflow');
-    if (value & 0x04) flags.push('missing-bin');
-    if (value & 0x08) flags.push('motor-fault');
-    if (value & 0x10) flags.push('sensor-fault');
+    if (!(value & 0x01)) flags.push('door=open');
+    if (!(value & 0x02)) flags.push('overflow');
+    if (!(value & 0x04)) flags.push('missing-bin');
+    if (!(value & 0x08)) flags.push('motor-fault');
+    if (!(value & 0x10)) flags.push('sensor-fault');
     return flags.length ? flags.join(', ') : 'normal';
   };
 

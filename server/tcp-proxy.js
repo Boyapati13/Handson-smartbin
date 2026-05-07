@@ -59,14 +59,21 @@ function extractDeviceId(buf) {
   return null;
 }
 
+// Protocol (PDF Table 1 status byte):
+//   Bit0: 0=door open,     1=door closed
+//   Bit1: 0=overflow,      1=normal
+//   Bit2: 0=bin missing,   1=normal
+//   Bit3: 0=motor fault,   1=normal
+//   Bit4: 0=sensor fault,  1=normal
+// A set bit means NORMAL for bits 1-4 (inverted polarity).
 function decodeStatusByte(value) {
   return {
-    raw: value,
-    doorOpen: !!(value & 0x01),
-    overflow: !!(value & 0x02),
-    missingBin: !!(value & 0x04),
-    motorFault: !!(value & 0x08),
-    sensorFault: !!(value & 0x10),
+    raw:         value,
+    doorOpen:    !(value & 0x01),   // bit0=0 → door is open
+    overflow:    !(value & 0x02),   // bit1=0 → overflow condition
+    missingBin:  !(value & 0x04),   // bit2=0 → bin not present
+    motorFault:  !(value & 0x08),   // bit3=0 → motor fault
+    sensorFault: !(value & 0x10),   // bit4=0 → sensor fault
   };
 }
 

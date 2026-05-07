@@ -5,6 +5,7 @@ import { AppProvider } from './context/AppContext'
 import Navbar    from './components/Navbar'
 import Topbar    from './components/Topbar'
 import ToastContainer from './components/Toast'
+import ChatBot   from './components/ChatBot'
 
 const Landing     = lazy(() => import('./pages/Landing'))
 const Dashboard   = lazy(() => import('./pages/Dashboard'))
@@ -56,6 +57,7 @@ function AppShell() {
         </div>
       </div>
       <ToastContainer />
+      <ChatBot />
     </AppProvider>
   )
 }
