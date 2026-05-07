@@ -434,37 +434,112 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Company Details Section ── */}
-      <section style={{ padding: 'clamp(60px,8vw,100px) 40px', background: C.bg, borderTop: `1px solid ${C.border}` }}>
+      {/* ── Trusted by ── */}
+      <section style={{ padding: '36px 40px', background: C.surface, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1140, margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ ...mono, fontSize: '0.62rem', color: C.muted, letterSpacing: '0.12em', marginBottom: 24 }}>TRUSTED BY LEADING ORGANISATIONS</div>
+          <div style={{ display: 'flex', gap: 40, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center', opacity: 0.55 }}>
+            {['Bolt', 'G4S', 'Lufthansa', 'TNT', 'Malta Public Transport', 'City Sightseeing Malta'].map(c => (
+              <span key={c} style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '0.9rem', color: C.text, whiteSpace: 'nowrap' }}>{c}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── About HandsOn Systems ── */}
+      <section style={{ padding: 'clamp(70px,10vw,110px) 40px', background: C.bg }}>
         <div style={{ maxWidth: 1140, margin: '0 auto' }}>
           <FadeIn>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 48 }}>
-
-              {/* Company info */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center', marginBottom: 72 }}>
               <div>
-                <HandsOnBadge iconSize={32} color={C.blue} subColor={C.muted} />
-                <p style={{ fontSize: '0.85rem', color: C.sub, lineHeight: 1.75, margin: '18px 0 20px', ...ui }}>
-                  HandsOn Systems delivers solar-powered smart waste management solutions. Real-time telemetry, predictive fleet analytics, and direct hardware integration for modern cities.
+                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 16 }}>ABOUT HANDSON SYSTEMS</div>
+                <h2 style={{ ...display, fontSize: 'clamp(1.8rem,4vw,2.4rem)', fontWeight: 800, color: C.text, letterSpacing: '-0.03em', margin: '0 0 18px', lineHeight: 1.2 }}>
+                  Connected Solutions for<br /><span style={{ color: C.blue }}>Tomorrow's World, Today</span>
+                </h2>
+                <p style={{ fontSize: '0.92rem', color: C.sub, lineHeight: 1.8, margin: '0 0 24px', ...ui }}>
+                  HandsOn Systems Ltd. is a Malta-based technology firm composed of skilled innovators focused on researching and developing advanced technological solutions — from GPS fleet management and IoT platforms to smart waste monitoring and usage-based insurance.
                 </p>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  {['CE', 'RoHS', 'IP54'].map(tag => (
-                    <span key={tag} style={{ ...mono, fontSize: '0.62rem', color: C.blue, background: C.blueDim, border: `1px solid ${C.blueBdr}`, borderRadius: 4, padding: '3px 8px' }}>{tag}</span>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {['GPS Tracking', 'Fleet Management', 'IoT Solutions', 'RFID Tracking', 'Smart Energy', 'Workforce Mgmt'].map(tag => (
+                    <span key={tag} style={{ ...mono, fontSize: '0.62rem', color: C.blue, background: C.blueDim, border: `1px solid ${C.blueBdr}`, borderRadius: 6, padding: '4px 10px' }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                {[
+                  { value: '24/7',  label: 'Support & monitoring' },
+                  { value: '99.9%', label: 'Platform uptime SLA' },
+                  { value: '6+',    label: 'Enterprise clients' },
+                  { value: 'Malta', label: 'HQ — Mosta Techno Park' },
+                ].map(s => (
+                  <div key={s.label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: '22px 20px', textAlign: 'center' }}>
+                    <div style={{ ...display, fontSize: '1.9rem', fontWeight: 800, color: C.blue, letterSpacing: '-0.04em', lineHeight: 1 }}>{s.value}</div>
+                    <div style={{ fontSize: '0.72rem', color: C.muted, marginTop: 6, ...ui }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* Services grid */}
+          <FadeIn delay={100}>
+            <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 24, textAlign: 'center' }}>OUR SOLUTIONS</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 14 }}>
+              {[
+                { title: 'Fleet Management',    desc: 'Vehicle location, speed, fuel, temperature and route optimisation in real time.' },
+                { title: 'IoT Platform',         desc: 'Parking sensors, waste monitoring, environmental data — all unified.' },
+                { title: 'RFID Asset Tracking',  desc: 'Inventory and asset management with full audit trail.' },
+                { title: 'Workforce Scheduling', desc: 'Task Master software for field worker scheduling and task tracking.' },
+                { title: 'Smart Energy',         desc: 'EV chargers, solar panels and intelligent lighting management.' },
+                { title: 'SmartBin',             desc: 'Solar-powered waste compactors with live telemetry and AI-driven collection routing.' },
+              ].map(s => (
+                <div key={s.title} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px 18px', transition: 'border-color 0.2s ease-out' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = C.blue}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                  <div style={{ fontFamily: 'Syne, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: C.text, marginBottom: 8 }}>{s.title}</div>
+                  <div style={{ fontSize: '0.78rem', color: C.sub, lineHeight: 1.65, ...ui }}>{s.desc}</div>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ── Contact & Device connection ── */}
+      <section style={{ padding: 'clamp(60px,8vw,90px) 40px', background: C.surface, borderTop: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+          <FadeIn>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 40 }}>
+
+              {/* Contact */}
+              <div>
+                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 20 }}>GET IN TOUCH</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {[
+                    { label: 'Phone',   value: '(+356) 2722 4445' },
+                    { label: 'Email',   value: 'info@handsonsystems.com' },
+                    { label: 'Address', value: 'MST26 Mosta Techno Park, Mosta MST 3000, Malta' },
+                    { label: 'Web',     value: 'www.handsonsystems.com' },
+                  ].map(r => (
+                    <div key={r.label}>
+                      <div style={{ ...mono, fontSize: '0.6rem', color: C.muted, marginBottom: 3 }}>{r.label}</div>
+                      <div style={{ fontSize: '0.82rem', color: C.sub, ...ui }}>{r.value}</div>
+                    </div>
                   ))}
                 </div>
               </div>
 
               {/* Device specs */}
               <div>
-                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 18 }}>DEVICE SPECIFICATIONS</div>
+                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 20 }}>DEVICE SPECIFICATIONS</div>
                 {[
-                  ['Model',       'HY-CKX1 Solar Compressor'],
-                  ['Firmware',    '4.37.0 HY_HSP_ItalyCustomer'],
-                  ['Card No',     '26042400P101'],
-                  ['IMEI',        '867105074732545'],
-                  ['Protocol',    'E9xx UART over TCP/IP'],
-                  ['Power',       'Solar PV + Li-ion battery'],
-                  ['Compression', '3-slot independent compactor'],
-                  ['Connectivity','4G/LTE + WiFi + Ethernet'],
+                  ['Model',        'HY-CKX1 Solar Compressor'],
+                  ['Firmware',     '4.37.0 HY_HSP_ItalyCustomer'],
+                  ['Card No',      '26042400P101'],
+                  ['IMEI',         '867105074732545'],
+                  ['Protocol',     'E9xx UART over TCP/IP'],
+                  ['Connectivity', '4G/LTE + WiFi + Ethernet'],
+                  ['Certifications','CE · RoHS · IP54'],
                 ].map(([k, v]) => (
                   <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${C.border}`, gap: 12 }}>
                     <span style={{ fontSize: '0.72rem', color: C.muted, ...ui }}>{k}</span>
@@ -473,50 +548,29 @@ export default function Landing() {
                 ))}
               </div>
 
-              {/* Connection info */}
+              {/* Connection */}
               <div>
-                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 18 }}>SERVER CONNECTION</div>
-                <div style={{ background: '#1e293b', border: `1px solid ${C.border}`, borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
+                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 20 }}>DEVICE CONNECTION</div>
+                <div style={{ background: '#0f172a', border: `1px solid ${C.border}`, borderRadius: 12, padding: '18px 20px', marginBottom: 14 }}>
                   {[
-                    ['TCP Host',   '130.211.208.47'],
-                    ['TCP Port',   '8078'],
-                    ['WebSocket',  '8765'],
-                    ['HTTP API',   '3001'],
+                    ['TCP Host',  '130.211.208.47'],
+                    ['TCP Port',  '8078'],
+                    ['WebSocket', '8765'],
+                    ['HTTP API',  '3001'],
+                    ['Server',    'GCP · us-central1-a'],
                   ].map(([k, v]) => (
-                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid rgba(51,65,85,0.6)`, gap: 12 }}>
+                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid rgba(51,65,85,0.5)`, gap: 12 }}>
                       <span style={{ fontSize: '0.7rem', color: C.muted, ...ui }}>{k}</span>
-                      <span style={{ ...mono, fontSize: '0.75rem', color: C.blue, fontWeight: 700 }}>{v}</span>
+                      <span style={{ ...mono, fontSize: '0.72rem', color: C.blue, fontWeight: 700 }}>{v}</span>
                     </div>
                   ))}
                 </div>
-                <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 8, padding: '10px 14px' }}>
-                  <div style={{ ...mono, fontSize: '0.62rem', color: '#10b981', fontWeight: 700, marginBottom: 4 }}>HOW TO CONNECT THE DEVICE</div>
-                  <div style={{ fontSize: '0.72rem', color: C.sub, lineHeight: 1.65, ...ui }}>
-                    On the device config screen:<br />
-                    1. Set <span style={{ ...mono, color: C.blue }}>TCP IP = 130.211.208.47</span><br />
-                    2. Set <span style={{ ...mono, color: C.blue }}>Port = 8078</span><br />
-                    3. Tap <strong style={{ color: C.text }}>SAVE</strong> → restart app<br />
-                    4. Device appears live on dashboard
+                <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 10, padding: '12px 16px' }}>
+                  <div style={{ ...mono, fontSize: '0.6rem', color: '#10b981', fontWeight: 700, marginBottom: 6 }}>HOW TO CONNECT</div>
+                  <div style={{ fontSize: '0.75rem', color: C.sub, lineHeight: 1.7, ...ui }}>
+                    On device config screen → set TCP IP to <span style={{ ...mono, color: C.blue }}>130.211.208.47</span>, Port <span style={{ ...mono, color: C.blue }}>8078</span> → SAVE → restart app.
                   </div>
                 </div>
-              </div>
-
-              {/* Contact */}
-              <div>
-                <div style={{ ...mono, fontSize: '0.65rem', color: C.blue, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 18 }}>CONTACT & SUPPORT</div>
-                {[
-                  ['Email',    'juhisravani.dowluri@gmail.com'],
-                  ['Platform', 'HandsOn SmartBin v2.0'],
-                  ['Server',   'GCP · us-central1-a'],
-                  ['Uptime',   '99.9% SLA'],
-                  ['Support',  '24/7 remote monitoring'],
-                  ['Protocol', 'ISO 27001 compliant'],
-                ].map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${C.border}`, gap: 12 }}>
-                    <span style={{ fontSize: '0.72rem', color: C.muted, ...ui }}>{k}</span>
-                    <span style={{ fontSize: '0.68rem', color: C.sub, textAlign: 'right', ...mono, wordBreak: 'break-all' }}>{v}</span>
-                  </div>
-                ))}
               </div>
 
             </div>
@@ -525,13 +579,18 @@ export default function Landing() {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ padding: '24px 40px', borderTop: `1px solid ${C.border}`, background: '#080f1a' }}>
-        <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <HandsOnBadge iconSize={20} color={C.blue} subColor={C.muted} />
+      <footer style={{ padding: '28px 40px', borderTop: `1px solid ${C.border}`, background: '#080f1a' }}>
+        <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <HandsOnBadge iconSize={22} color={C.blue} subColor={C.muted} />
+            <div style={{ display: 'flex', gap: 20 }}>
+              {['(+356) 2722 4445', 'info@handsonsystems.com', 'Mosta, Malta'].map(t => (
+                <span key={t} style={{ fontSize: '0.7rem', color: C.muted, ...ui }}>{t}</span>
+              ))}
+            </div>
           </div>
-          <p style={{ fontSize: '0.72rem', color: C.muted, margin: 0, ...ui }}>
-            © {new Date().getFullYear()} HandsOn Systems · Solar-powered waste management · All rights reserved
+          <p style={{ fontSize: '0.7rem', color: C.muted, margin: 0, ...ui }}>
+            © {new Date().getFullYear()} HandsOn Systems Ltd. · All rights reserved
           </p>
         </div>
       </footer>
