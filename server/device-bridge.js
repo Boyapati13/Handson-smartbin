@@ -38,8 +38,8 @@ export function decodeFrame(buf) {
     0x09: () => `Counts · open=${payload.slice(0, 3).join('/')} · compress=${payload.slice(3, 6).join('/')}`,
     0x10: () => `Location · ${ascii || payloadHex}`,
     0x11: () => payload[0] === 0x01 ? 'Alert · jam detected' : payload[1] === 0x01 ? 'Alert · smoke detected' : `Alert · ${payloadHex}`,
-    0xAB: () => 'Heartbeat · keep-alive from device',
-    0xAC: () => 'Heartbeat · keep-alive from device (alt)',
+    0xAB: () => 'ACK · heartbeat keep-alive from device',
+    0xAC: () => 'ACK · heartbeat keep-alive from device (alt)',
     // Server → Device commands
     0xC1: () => `CMD → open deposit door ${(payload[0] ?? 0) & 0x0F || 1}`,
     0xC2: () => `CMD → close deposit door ${(payload[0] ?? 0) & 0x0F || 1}`,

@@ -5,8 +5,8 @@ let store;
 beforeEach(() => { store = createStore(); });
 
 describe('createStore — bins', () => {
-  it('returns all 8 initial bins', () => {
-    expect(store.getBins()).toHaveLength(8);
+  it('returns all initial bins', () => {
+    expect(store.getBins()).toHaveLength(INITIAL_BINS.length);
   });
 
   it('getBin returns matching bin', () => {
@@ -100,7 +100,7 @@ describe('createStore — stats', () => {
   });
 
   it('returns correct total', () => {
-    expect(store.getStats().total).toBe(8);
+    expect(store.getStats().total).toBe(INITIAL_BINS.length);
   });
 
   it('criticalAlerts is 0 with no alerts', () => {

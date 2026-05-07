@@ -6,8 +6,8 @@
 import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
 import express from 'express';
 import cors    from 'cors';
-import { createStore }     from '../../../server/store.js';
-import { createApiRouter } from '../../../server/api.js';
+import { createStore, INITIAL_BINS } from '../../../server/store.js';
+import { createApiRouter }           from '../../../server/api.js';
 
 let app, store, broadcastMock;
 
@@ -68,7 +68,7 @@ describe('GET /api/stats', () => {
   it('returns fleet statistics', async () => {
     const { status, body } = await get('/stats');
     expect(status).toBe(200);
-    expect(body.total).toBe(8);
+    expect(body.total).toBe(INITIAL_BINS.length);
     expect(body).toHaveProperty('online');
     expect(body).toHaveProperty('avgFill');
   });
@@ -76,10 +76,10 @@ describe('GET /api/stats', () => {
 
 // ── Bins ───────────────────────────────────────────────────────────────────
 describe('GET /api/bins', () => {
-  it('returns all 8 bins', async () => {
+  it('returns all bins', async () => {
     const { status, body } = await get('/bins');
     expect(status).toBe(200);
-    expect(body).toHaveLength(8);
+    expect(body).toHaveLength(INITIAL_BINS.length);
   });
 
   it('filters by status', async () => {
@@ -115,8 +115,9 @@ describe('GET /api/bins/:id', () => {
 // ── Commands ───────────────────────────────────────────────────────────────
 describe('POST /api/bins/:id/command', () => {
   it('compact reduces fill and increments cycles', async () => {
-    const before = store.getBin('HS-002'); // fill=96
-    const { status, body } = await post('/bins/HS-002/command', { cmd: 'compact' });
+    store.updateBin('HS-001', { fill: 80, cycles: 5 });
+    const before = store.getBin('HS-001');
+    const { status, body } = await post('/bins/HS-001/command', { cmd: 'compact' });
     expect(status).toBe(200);
     expect(body.ok).toBe(true);
     expect(body.bin.fill).toBeLessThan(before.fill);
@@ -129,9 +130,9 @@ describe('POST /api/bins/:id/command', () => {
   });
 
   it('acknowledge clears bin alerts', async () => {
-    store.addAlert({ id: 1, bin: 'HS-002', type: 'OVERFLOW', sev: 'crit' });
-    await post('/bins/HS-002/command', { cmd: 'acknowledge' });
-    expect(store.getAlerts().filter(a => a.bin === 'HS-002')).toHaveLength(0);
+    store.addAlert({ id: 1, bin: 'HS-001', type: 'OVERFLOW', sev: 'crit' });
+    await post('/bins/HS-001/command', { cmd: 'acknowledge' });
+    expect(store.getAlerts().filter(a => a.bin === 'HS-001')).toHaveLength(0);
   });
 
   it('returns 404 for unknown bin', async () => {

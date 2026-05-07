@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AppProvider, useApp } from '../../context/AppContext';
+import { AuthProvider } from '../../context/AuthContext';
 import { BINS as STATIC_BINS } from '../../data/bins';
 
 function Probe() {
@@ -17,7 +18,13 @@ function Probe() {
 }
 
 function wrap(ui) {
-  return render(<MemoryRouter><AppProvider>{ui}</AppProvider></MemoryRouter>);
+  return render(
+    <MemoryRouter>
+      <AuthProvider>
+        <AppProvider>{ui}</AppProvider>
+      </AuthProvider>
+    </MemoryRouter>
+  );
 }
 
 describe('AppContext — initial state', () => {
@@ -44,11 +51,13 @@ describe('AppContext — WebSocket messages', () => {
   it('handles init message and updates bins', async () => {
     wrap(<Probe />);
     const ws = global.MockWebSocket.instances[0];
+    const threeBins = [
+      { ...STATIC_BINS[0], id: 'HS-001' },
+      { ...STATIC_BINS[0], id: 'HS-002' },
+      { ...STATIC_BINS[0], id: 'HS-003' },
+    ];
     await act(async () => {
-      ws.receive({
-        type: 'init',
-        data: { bins: STATIC_BINS.slice(0, 3), alerts: [] },
-      });
+      ws.receive({ type: 'init', data: { bins: threeBins, alerts: [] } });
     });
     expect(screen.getByTestId('bin-count').textContent).toBe('3');
   });

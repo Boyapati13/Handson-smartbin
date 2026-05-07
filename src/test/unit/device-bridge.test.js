@@ -10,24 +10,24 @@ describe('decodeFrame()', () => {
     expect(out).toContain('slot3=28%');
   });
 
-  it('decodes ACK frame (E9 AB)', () => {
+  it('decodes ACK heartbeat frame (E9 AB)', () => {
     const buf = Buffer.from([0xE9, 0xAB, 0x00, 0x0D, 0x0A]);
     expect(decodeFrame(buf)).toContain('ACK');
   });
 
-  it('decodes compact CMD (E9 B1)', () => {
-    const buf = Buffer.from([0xE9, 0xB1, 0x01, 0x0D, 0x0A]);
-    expect(decodeFrame(buf)).toContain('compaction');
+  it('decodes open door CMD (E9 C1)', () => {
+    const buf = Buffer.from([0xE9, 0xC1, 0x01, 0xD1, 0x0D, 0x0A]);
+    expect(decodeFrame(buf)).toContain('open');
   });
 
   it('decodes close door CMD (E9 C2)', () => {
-    const buf = Buffer.from([0xE9, 0xC2, 0x01, 0x0D, 0x0A]);
-    expect(decodeFrame(buf)).toContain('close door');
+    const buf = Buffer.from([0xE9, 0xC2, 0x01, 0xD1, 0x0D, 0x0A]);
+    expect(decodeFrame(buf)).toContain('door');
   });
 
-  it('decodes fault frame (E9 0F)', () => {
-    const buf = Buffer.from([0xE9, 0x0F, 0x01, 0x00, 0x0D, 0x0A]);
-    expect(decodeFrame(buf)).toContain('Fault');
+  it('decodes smoke/jam alert frame (E9 11)', () => {
+    const buf = Buffer.from([0xE9, 0x11, 0x02, 0x01, 0x00, 0x0D, 0x0A]);
+    expect(decodeFrame(buf)).toContain('jam');
   });
 
   it('handles unknown frame gracefully', () => {
