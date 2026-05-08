@@ -53,17 +53,40 @@ export function decodeFrame(buf) {
   return (map[type] || (() => `Frame 0xE9 0x${type.toString(16).toUpperCase()})`))();
 }
 
-/** Parse raw TCP bytes into an array of complete E9xx frames. */
+/**
+ * Parse raw TCP bytes into an array of complete E9xx frames.
+ *
+ * Frame format: E9 <func> <data_len> <data...> 0x0D 0x0A
+ * Total length: 3 (header) + data_len + 2 (trailer) bytes.
+ *
+ * IMPORTANT: searching for 0x0D to find the trailer is WRONG because
+ * data bytes can legitimately equal 0x0D (e.g. temperature=13°C,
+ * fill=13%, battery=13). This parser uses the data_len field instead.
+ */
 export function parseFrames(buf) {
   const frames = [];
   let i = 0;
   while (i < buf.length) {
+    // Find next E9 frame start
     if (buf[i] !== 0xE9) { i++; continue; }
-    // Find EOF marker 0x0D 0x0A
-    const eofIdx = buf.indexOf(0x0D, i + 1);
-    if (eofIdx === -1 || buf[eofIdx + 1] !== 0x0A) break;
-    frames.push(buf.slice(i, eofIdx + 2));
-    i = eofIdx + 2;
+
+    // Need at least 3 bytes for header: E9 + func_code + data_len
+    if (i + 2 >= buf.length) break;
+
+    const dataLen  = buf[i + 2];
+    const frameLen = 3 + dataLen + 2;   // header(3) + data + trailer(2)
+
+    // Wait for more data if frame is incomplete
+    if (i + frameLen > buf.length) break;
+
+    // Verify 0x0D 0x0A trailer at expected position
+    if (buf[i + frameLen - 2] !== 0x0D || buf[i + frameLen - 1] !== 0x0A) {
+      i++;   // Not a valid frame — advance and retry
+      continue;
+    }
+
+    frames.push(buf.slice(i, i + frameLen));
+    i += frameLen;
   }
   return frames;
 }

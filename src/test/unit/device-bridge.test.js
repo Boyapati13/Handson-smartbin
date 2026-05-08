@@ -57,7 +57,25 @@ describe('parseFrames()', () => {
 
   it('parses two frames in one buffer', () => {
     const frame1 = Buffer.from([0xE9, 0xAB, 0x00, 0x0D, 0x0A]);
-    const frame2 = Buffer.from([0xE9, 0xB1, 0x01, 0x0D, 0x0A]);
+    const frame2 = Buffer.from([0xE9, 0x09, 0x06, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x0A]);
+    const frames = parseFrames(Buffer.concat([frame1, frame2]));
+    expect(frames).toHaveLength(2);
+  });
+
+  // CRITICAL: 0x0D inside data must NOT break parsing (e.g. temp=13°C, fill=13%)
+  it('parses battery frame containing 0x0D in data (temp=13)', () => {
+    // E9 07 04 [voltage=48] [current=5] [level=96] [temp=13=0x0D] 0x0D 0x0A
+    const buf = Buffer.from([0xE9, 0x07, 0x04, 0x30, 0x05, 0x60, 0x0D, 0x0D, 0x0A]);
+    const frames = parseFrames(buf);
+    expect(frames).toHaveLength(1);
+    expect(frames[0].length).toBe(9);
+    expect(frames[0][6]).toBe(0x0D); // temp byte preserved
+  });
+
+  it('parses two frames where first data contains 0x0D', () => {
+    // Battery frame with temp=13, then heartbeat ACK
+    const frame1 = Buffer.from([0xE9, 0x07, 0x04, 0x30, 0x05, 0x60, 0x0D, 0x0D, 0x0A]);
+    const frame2 = Buffer.from([0xE9, 0xAB, 0x00, 0x0D, 0x0A]);
     const frames = parseFrames(Buffer.concat([frame1, frame2]));
     expect(frames).toHaveLength(2);
   });
