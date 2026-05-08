@@ -79,12 +79,14 @@ export default function DeviceMonitor() {
         <>
           {/* Metric tiles */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginBottom: 20 }}>
-            <MetricTile label="Fill Level"  value={`${Math.round(bin.fill)}%`}    sub="Current reading"                                                   color={fc}                                                      icon={RotateCcw}   />
-            <MetricTile label="Battery"     value={`${Math.round(bin.battery)}%`} sub={bin.battery < 20 ? 'Low — check solar' : 'Solar charging'}         color={bin.battery < 20 ? 'var(--crimson)' : 'var(--green)'}    icon={Battery}     />
-            <MetricTile label="Temperature" value={bin.temp > 0 ? `${bin.temp}°C` : '—'} sub="Internal sensor"                                           color="var(--sky)"                                              icon={Thermometer} />
-            <MetricTile label="Signal"      value={`${bin.signal}/4`}             sub={bin.signal < 2 ? 'Weak signal' : 'Good signal'}                    color={bin.signal < 2 ? 'var(--amber)' : 'var(--blue)'}         icon={Signal}      />
-            <MetricTile label="Compactions" value={bin.cycles}                    sub="Total cycles"                                                       color="var(--sub)"                                              icon={RotateCcw}   />
-            <MetricTile label="Status"      value={statusMap[bin.status]?.label || bin.status} sub={isConnected ? 'Real device' : 'Offline'}              color={statusMap[bin.status]?.color || 'var(--sub)'}            icon={Wifi}        />
+            <MetricTile label="Fill Level"     value={`${Math.round(bin.fill)}%`}                                     sub="Slot 1 · from 0x08 frame"                             color={fc}                                                   icon={RotateCcw}   />
+            <MetricTile label="Battery Level"  value={`${Math.round(bin.battery)}%`}                                   sub={bin.battery < 20 ? 'Low — check solar' : 'Charging'}  color={bin.battery < 20 ? 'var(--crimson)' : 'var(--green)'} icon={Battery}     />
+            <MetricTile label="Voltage"        value={bin.batteryVoltage != null ? `${bin.batteryVoltage} V` : '—'}    sub="Battery voltage · from 0x07"                           color="var(--green)"                                         icon={Battery}     />
+            <MetricTile label="Current"        value={bin.batteryCurrent != null ? `${bin.batteryCurrent} A` : '—'}    sub="Charge/discharge · from 0x07"                          color="var(--sky)"                                           icon={Battery}     />
+            <MetricTile label="Temperature"    value={bin.temp > 0 ? `${bin.temp}°C` : '—'}                            sub="Internal sensor · from 0x07"                           color="var(--sky)"                                           icon={Thermometer} />
+            <MetricTile label="Compactions"    value={bin.cycles}                                                       sub="Total cycles · from 0x09"                              color="var(--sub)"                                           icon={RotateCcw}   />
+            <MetricTile label="Door Opens"     value={(bin.openCounts || []).reduce((a,b) => a+b, 0) || 0}              sub={`D1:${bin.openCounts?.[0]??0} D2:${bin.openCounts?.[1]??0} D3:${bin.openCounts?.[2]??0}`} color="var(--sub)" icon={RotateCcw} />
+            <MetricTile label="Status"         value={statusMap[bin.status]?.label || bin.status}                       sub={isConnected ? 'Real device · live' : 'Offline'}        color={statusMap[bin.status]?.color || 'var(--sub)'}         icon={Wifi}        />
           </div>
 
           {/* Gauge + map */}
