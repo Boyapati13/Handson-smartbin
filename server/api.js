@@ -102,19 +102,31 @@ export function createApiRouter(store, broadcast) {
     }, {});
     const alertsBySev = { crit: alertHistory.filter(a=>a.sev==='crit').length, warn: alertHistory.filter(a=>a.sev==='warn').length };
 
-    // Per-bin summary row
+    // Per-bin summary row — includes ALL device fields from E9xx protocol
     const binSummary = bins.map(b => ({
-      id:          b.id,
-      name:        b.name,
-      area:        b.area,
-      fill:        +b.fill.toFixed(1),
-      battery:     +b.battery.toFixed(1),
-      status:      b.status,
-      cycles:      b.cycles,
-      temp:        b.temp,
-      signal:      b.signal,
-      uptimePct:   uptimes[b.id] ?? (b.status !== 'offline' ? 100 : 0),
-      alertCount:  alertsByBin[b.id] || 0,
+      id:               b.id,
+      name:             b.name,
+      area:             b.area,
+      deviceNo:         b.deviceNo    || null,
+      imei:             b.imei        || null,
+      fill:             +b.fill.toFixed(1),
+      capacitySlots:    b.capacitySlots  || [null, null, null],
+      battery:          +(b.battery||0).toFixed(1),
+      batteryVoltage:   b.batteryVoltage ?? null,
+      batteryCurrent:   b.batteryCurrent ?? null,
+      status:           b.status,
+      doorOpen:         b.doorOpen    || false,
+      bucketStatus:     b.bucketStatus || null,
+      cycles:           b.cycles      || 0,
+      openCounts:       b.openCounts  || [0, 0, 0],
+      compactionCounts: b.compactionCounts || [0, 0, 0],
+      temp:             b.temp        || 0,
+      lat:              b.lat         ?? null,
+      lng:              b.lng         ?? null,
+      lastLocation:     b.lastLocation || null,
+      seen:             b.seen        || null,
+      uptimePct:        uptimes[b.id] ?? (b.status !== 'offline' ? 100 : 0),
+      alertCount:       alertsByBin[b.id] || 0,
     }));
 
     res.json({
@@ -220,18 +232,32 @@ export function createApiRouter(store, broadcast) {
     const alertsByBin = alertHistory.reduce((acc, a) => { acc[a.bin]=(acc[a.bin]||0)+1; return acc; }, {});
 
     const csvRows = bins.map(b => ({
-      ID:          b.id,
-      Name:        b.name,
-      Area:        b.area,
-      Status:      b.status,
-      'Fill %':    +b.fill.toFixed(1),
-      'Battery %': +b.battery.toFixed(1),
-      'Temp °C':   b.temp,
-      'Signal':    `${b.signal}/4`,
-      'Cycles':    b.cycles,
-      'Uptime %':  uptimes[b.id] ?? (b.status!=='offline'?100:0),
-      'Alert Count': alertsByBin[b.id] || 0,
-      'Last Seen': b.seen || '—',
+      ID:                  b.id,
+      'Device Card':       b.deviceNo         || '—',
+      IMEI:                b.imei             || '—',
+      Name:                b.name,
+      Area:                b.area,
+      Status:              b.status,
+      'Fill % (Slot 1)':   +(b.fill||0).toFixed(1),
+      'Fill % (Slot 2)':   b.capacitySlots?.[1] ?? '—',
+      'Fill % (Slot 3)':   b.capacitySlots?.[2] ?? '—',
+      'Battery %':         +(b.battery||0).toFixed(1),
+      'Battery Voltage V': b.batteryVoltage   ?? '—',
+      'Battery Current A': b.batteryCurrent   ?? '—',
+      'Temp °C':           b.temp             || 0,
+      'Door Open':         b.doorOpen         ? 'Yes' : 'No',
+      'Cycles (Total)':    b.cycles           || 0,
+      'Opens D1':          b.openCounts?.[0]  ?? 0,
+      'Opens D2':          b.openCounts?.[1]  ?? 0,
+      'Opens D3':          b.openCounts?.[2]  ?? 0,
+      'Compactions D1':    b.compactionCounts?.[0] ?? 0,
+      'Compactions D2':    b.compactionCounts?.[1] ?? 0,
+      'Compactions D3':    b.compactionCounts?.[2] ?? 0,
+      'Lat':               b.lat              ?? '—',
+      'Lng':               b.lng              ?? '—',
+      'Uptime %':          uptimes[b.id]      ?? (b.status!=='offline' ? 100 : 0),
+      'Alert Count':       alertsByBin[b.id]  || 0,
+      'Last Seen':         b.seen             || '—',
     }));
 
     res.json({ generatedAt: new Date().toISOString(), format: 'csv', rows: csvRows });

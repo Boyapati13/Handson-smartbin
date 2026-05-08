@@ -12,7 +12,14 @@
       "Skill(browse:*)",
       "Bash(npx vite *)",
       "Bash(node server/index.js)",
-      "Bash(timeout 3 node server/dns-spoof.js)"
+      "Bash(timeout 3 node server/dns-spoof.js)",
+      "Bash(npm test *)",
+      "WebFetch(domain:www.handsonsystems.com)",
+      "Read(//c/Users/Tenders/.claude/skills/ui-ux-pro-max/**)",
+      "Bash(\"C:\\\\Users\\\\Tenders\\\\AppData\\\\Local\\\\Python\\\\bin\\\\python3.exe\" scripts/search.py \"B2B IoT smart city landing page dark professional\" --design-system -p \"HandsOn SmartBin\")",
+      "Bash(\"C:\\\\Users\\\\Tenders\\\\AppData\\\\Local\\\\Python\\\\bin\\\\python3.exe\" scripts/search.py \"glassmorphism dark tech IoT dashboard cards\" --domain style -n 3)",
+      "Bash(Get-ChildItem -Path C:\\\\Users\\\\Tenders\\\\Handson-smartbin -Recurse -Filter \"*.js\" -File)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

@@ -153,10 +153,12 @@ function FleetTab({ bins, alerts }) {
     return [...bins].sort((a,b) => asc ? (a[sort]??0)-(b[sort]??0) : (b[sort]??0)-(a[sort]??0))
   }, [bins, sort, asc])
 
-  const onlinePct  = Math.round((bins.filter(b=>b.status!=='offline').length/bins.length)*100)
-  const avgFill    = Math.round(bins.reduce((s,b)=>s+b.fill,0)/bins.length)
-  const totalCycles = bins.reduce((s,b)=>s+b.cycles,0)
-  const critCount  = alerts.filter(a=>a.sev==='crit').length
+  const onlinePct   = bins.length ? Math.round((bins.filter(b=>b.status!=='offline').length/bins.length)*100) : 0
+  const avgFill     = bins.length ? Math.round(bins.reduce((s,b)=>s+(b.fill||0),0)/bins.length) : 0
+  const avgBattery  = bins.length ? Math.round(bins.reduce((s,b)=>s+(b.battery||0),0)/bins.length) : 0
+  const totalCycles = bins.reduce((s,b)=>s+(b.cycles||0),0)
+  const totalOpens  = bins.reduce((s,b)=>s+(b.openCounts||[]).reduce((a,c)=>a+c,0),0)
+  const critCount   = alerts.filter(a=>a.sev==='crit').length
 
   function SortBtn({ field, label }) {
     const active = sort===field
@@ -176,12 +178,14 @@ function FleetTab({ bins, alerts }) {
 
       {/* KPIs */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12, marginBottom:20 }}>
-        <StatBox label="Fleet Uptime"      value={`${onlinePct}%`}   sub={`${bins.filter(b=>b.status!=='offline').length}/${bins.length} online`}   color="var(--green)"   icon={Wifi}/>
-        <StatBox label="Avg Fill"          value={`${avgFill}%`}     sub="Live fleet average"                           color="var(--blue)"    icon={TrendingUp}/>
-        <StatBox label="Critical Alerts"   value={critCount}          sub={`${alerts.length} total active`}             color={critCount>0?'var(--crimson)':'var(--green)'} icon={AlertTriangle}/>
-        <StatBox label="Total Compactions" value={totalCycles}        sub="All bins combined"                           color="var(--sub)"     icon={RotateCcw}/>
-        <StatBox label="Full / Warning"    value={bins.filter(b=>b.status==='full'||b.status==='warning').length} sub="Needs attention"   color="var(--amber)"   icon={AlertOctagon}/>
-        <StatBox label="Offline"           value={bins.filter(b=>b.status==='offline').length}  sub="No heartbeat"   color="var(--muted)"   icon={WifiOff}/>
+        <StatBox label="Fleet Uptime"      value={`${onlinePct}%`}   sub={`${bins.filter(b=>b.status!=='offline').length}/${bins.length} online`} color="var(--green)"   icon={Wifi}/>
+        <StatBox label="Avg Fill"          value={`${avgFill}%`}     sub="Fleet average · 0x08"                        color="var(--blue)"    icon={TrendingUp}/>
+        <StatBox label="Avg Battery"       value={`${avgBattery}%`}  sub="Fleet average · 0x07"                        color="var(--green)"   icon={Battery}/>
+        <StatBox label="Critical Alerts"   value={critCount}          sub={`${alerts.length} total active`}            color={critCount>0?'var(--crimson)':'var(--green)'} icon={AlertTriangle}/>
+        <StatBox label="Total Compactions" value={totalCycles}        sub="All bins · from 0x09"                       color="var(--sub)"     icon={RotateCcw}/>
+        <StatBox label="Total Door Opens"  value={totalOpens}         sub="All bins · from 0x09"                       color="var(--sub)"     icon={RotateCcw}/>
+        <StatBox label="Full / Warning"    value={bins.filter(b=>b.status==='full'||b.status==='warning').length} sub="Needs attention" color="var(--amber)"   icon={AlertOctagon}/>
+        <StatBox label="Offline"           value={bins.filter(b=>b.status==='offline').length}  sub="No heartbeat"  color="var(--muted)"   icon={WifiOff}/>
       </div>
 
       {/* Fill chart */}
@@ -213,8 +217,8 @@ function FleetTab({ bins, alerts }) {
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'0.78rem' }}>
             <thead>
               <tr style={{ borderBottom:'1px solid var(--border)', background:'var(--ink)' }}>
-                {[['Unit','id'],['Name',null],['Area',null],['Status',null],['Fill %','fill'],['Battery','battery'],['Temp °C','temp'],['Signal','signal'],['Cycles','cycles']].map(([h,f])=>(
-                  <th key={h} style={{ padding:'10px 14px', textAlign:'left', color:'var(--sub)', fontWeight:500, ...mono, fontSize:'0.62rem', letterSpacing:'0.06em', whiteSpace:'nowrap' }}>
+                {[['Unit','id'],['Name',null],['Status',null],['Fill','fill'],['Bat %','battery'],['Volt V',null],['Curr A',null],['Temp','temp'],['Cycles','cycles'],['Opens',null],['Door',null]].map(([h,f])=>(
+                  <th key={h} style={{ padding:'10px 12px', textAlign:'left', color:'var(--sub)', fontWeight:500, ...mono, fontSize:'0.6rem', letterSpacing:'0.06em', whiteSpace:'nowrap' }}>
                     {f ? <SortBtn field={f} label={h}/> : h}
                   </th>
                 ))}
@@ -225,15 +229,17 @@ function FleetTab({ bins, alerts }) {
                 <tr key={b.id} style={{ borderBottom:'1px solid var(--ink)' }}
                   onMouseEnter={e=>e.currentTarget.style.background='var(--raised)'}
                   onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                  <td style={{ padding:'10px 14px', ...mono, color:'var(--blue)', fontWeight:700, fontSize:'0.72rem' }}>{b.id}</td>
-                  <td style={{ padding:'10px 14px', color:'var(--text)', fontWeight:500 }}>{b.name}</td>
-                  <td style={{ padding:'10px 14px', color:'var(--sub)', ...mono, fontSize:'0.72rem' }}>{b.area}</td>
-                  <td style={{ padding:'10px 14px' }}><StatusBadge status={b.status}/></td>
-                  <td style={{ padding:'10px 14px', minWidth:120 }}><FillBar pct={Math.round(b.fill)} showLabel height={5}/></td>
-                  <td style={{ padding:'10px 14px', ...mono, fontSize:'0.72rem', color:b.battery<20?'var(--crimson)':'var(--sub)' }}>{Math.round(b.battery)}%</td>
-                  <td style={{ padding:'10px 14px', ...mono, fontSize:'0.72rem', color:'var(--sub)' }}>{b.temp>0?`${b.temp}°C`:'—'}</td>
-                  <td style={{ padding:'10px 14px', ...mono, fontSize:'0.72rem', color:b.signal<2?'var(--amber)':'var(--sub)' }}>{b.signal}/4</td>
-                  <td style={{ padding:'10px 14px', ...mono, fontSize:'0.72rem', color:'var(--sub)' }}>{b.cycles}</td>
+                  <td style={{ padding:'9px 12px', ...mono, color:'var(--blue)', fontWeight:700, fontSize:'0.7rem' }}>{b.id}</td>
+                  <td style={{ padding:'9px 12px', color:'var(--text)', fontWeight:500, fontSize:'0.8rem' }}>{b.name}</td>
+                  <td style={{ padding:'9px 12px' }}><StatusBadge status={b.status}/></td>
+                  <td style={{ padding:'9px 12px', minWidth:110 }}><FillBar pct={Math.round(b.fill)} showLabel height={5}/></td>
+                  <td style={{ padding:'9px 12px', ...mono, fontSize:'0.7rem', color:b.battery<20?'var(--crimson)':'var(--sub)' }}>{Math.round(b.battery||0)}%</td>
+                  <td style={{ padding:'9px 12px', ...mono, fontSize:'0.7rem', color:'var(--sub)' }}>{b.batteryVoltage!=null?`${b.batteryVoltage}`:'—'}</td>
+                  <td style={{ padding:'9px 12px', ...mono, fontSize:'0.7rem', color:'var(--sub)' }}>{b.batteryCurrent!=null?`${b.batteryCurrent}`:'—'}</td>
+                  <td style={{ padding:'9px 12px', ...mono, fontSize:'0.7rem', color:'var(--sub)' }}>{b.temp>0?`${b.temp}°C`:'—'}</td>
+                  <td style={{ padding:'9px 12px', ...mono, fontSize:'0.7rem', color:'var(--sub)' }}>{b.cycles||0}</td>
+                  <td style={{ padding:'9px 12px', ...mono, fontSize:'0.7rem', color:'var(--sub)' }}>{(b.openCounts||[]).join('/')}</td>
+                  <td style={{ padding:'9px 12px', ...mono, fontSize:'0.7rem', color:b.doorOpen?'var(--amber)':'var(--green)' }}>{b.doorOpen?'Open':'Closed'}</td>
                 </tr>
               ))}
             </tbody>
@@ -293,16 +299,22 @@ function PerBinTab({ bins }) {
                 <div style={{ fontFamily:'Syne, sans-serif', fontSize:'1.4rem', fontWeight:700, color:'var(--text)', marginBottom:8 }}>{bin.name}</div>
                 <StatusBadge status={bin.status}/>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:20 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
                 {[
-                  ['Fill',       `${Math.round(bin.fill)}%`,                       fillColor(bin.fill)],
-                  ['Battery',    `${Math.round(bin.battery)}%`,                    bin.battery<20?'var(--crimson)':'var(--green)'],
-                  ['Uptime',     `${report.uptimePct??'—'}%`,                      'var(--green)'],
-                  ['Compactions',report.cycles,                                     'var(--blue)'],
-                  ['Alerts',     filteredAlerts.length,                            filteredAlerts.length>0?'var(--amber)':'var(--green)'],
-                  ['Temperature',bin.temp>0?`${bin.temp}°C`:'—',                  'var(--sky)'],
+                  ['Fill (S1)',      `${Math.round(bin.fill)}%`,                                 fillColor(bin.fill)],
+                  ['Fill (S2)',      bin.capacitySlots?.[1]!=null ? `${bin.capacitySlots[1]}%` : '—', 'var(--blue)'],
+                  ['Fill (S3)',      bin.capacitySlots?.[2]!=null ? `${bin.capacitySlots[2]}%` : '—', 'var(--blue)'],
+                  ['Battery',       `${Math.round(bin.battery)}%`,                              bin.battery<20?'var(--crimson)':'var(--green)'],
+                  ['Voltage',       bin.batteryVoltage!=null?`${bin.batteryVoltage}V`:'—',      'var(--green)'],
+                  ['Current',       bin.batteryCurrent!=null?`${bin.batteryCurrent}A`:'—',      'var(--sky)'],
+                  ['Temperature',   bin.temp>0?`${bin.temp}°C`:'—',                             'var(--sky)'],
+                  ['Compactions',   report.cycles||0,                                            'var(--blue)'],
+                  ['Opens D1/D2/D3',(bin.openCounts||[0,0,0]).join('/'),                        'var(--sub)'],
+                  ['Compact D1/D2/D3',(bin.compactionCounts||[0,0,0]).join('/'),                'var(--sub)'],
+                  ['Uptime',        `${report.uptimePct??'—'}%`,                                'var(--green)'],
+                  ['Alerts',        filteredAlerts.length,                                       filteredAlerts.length>0?'var(--amber)':'var(--green)'],
                 ].map(([l,v,c])=>(
-                  <div key={l}><div style={lbl}>{l}</div><div style={{ ...mono, fontSize:'1.1rem', fontWeight:700, color:c }}>{v}</div></div>
+                  <div key={l}><div style={lbl}>{l}</div><div style={{ ...mono, fontSize:'0.95rem', fontWeight:700, color:c }}>{v}</div></div>
                 ))}
               </div>
             </div>
@@ -716,7 +728,7 @@ function ExportTab({ bins, alerts }) {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:16, marginBottom:20 }}>
         <ExportCard
           title="Fleet Status CSV"
-          desc="All 8 bins — fill, battery, status, uptime, cycles, alert counts"
+          desc="All bins — fill (3 slots), battery voltage/current, temperature, door state, open/compaction counts per door, GPS, uptime, alerts"
           count={filteredRows.length}
           onClick={() => downloadCSV(filteredRows, `handson-fleet${suffix}.csv`)}
           color="var(--blue)" Icon={Layers}  label="Download Fleet CSV"

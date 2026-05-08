@@ -25,11 +25,13 @@ export default function Analytics() {
   const maxV = Math.max(...WEEK_DATA.map(d => d.v))
   const avgV = Math.round(WEEK_DATA.reduce((s,d) => s + d.v, 0) / WEEK_DATA.length)
 
-  // ── Derived metrics (all computed, nothing hardcoded) ───────────────────
-  const liveAvg     = Math.round(bins.reduce((s,b) => s + b.fill, 0) / bins.length)
+  // ── Derived metrics — guarded against empty bins array ─────────────────
+  const liveAvg        = bins.length ? Math.round(bins.reduce((s,b) => s + (b.fill||0), 0) / bins.length) : 0
+  const avgBattery     = bins.length ? Math.round(bins.reduce((s,b) => s + (b.battery||0), 0) / bins.length) : 0
   const needCollection = bins.filter(b => b.fill >= 80 && b.status !== 'offline').length
-  const totalCycles = bins.reduce((s,b) => s + (b.cycles || 0), 0)
-  const uptimePct   = Math.round((bins.filter(b => b.status !== 'offline').length / bins.length) * 100)
+  const totalCycles    = bins.reduce((s,b) => s + (b.cycles || 0), 0)
+  const totalOpens     = bins.reduce((s,b) => s + (b.openCounts||[]).reduce((a,c)=>a+c,0), 0)
+  const uptimePct      = bins.length ? Math.round((bins.filter(b => b.status !== 'offline').length / bins.length) * 100) : 0
 
   // Route savings — compare optimised route vs fixed schedule for bins ≥70%
   const routeMetrics = useMemo(() => {
@@ -55,18 +57,14 @@ export default function Analytics() {
       {/* KPI row — all values computed from live data */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12, marginBottom:20 }}>
         {[
-          ['Avg Fill',      `${liveAvg}%`,
-            'Live fleet average',                                    'var(--blue)'],
-          ['Need Collection', needCollection,
-            'Bins above 80% threshold',                              'var(--amber)'],
-          ['Compactions',   totalCycles,
-            'Total cycles across fleet',                             'var(--sub)'],
-          ['Uptime',        `${uptimePct}%`,
-            `${bins.filter(b=>b.status!=='offline').length} of ${bins.length} online`, 'var(--green)'],
-          ['Route Savings', routeMetrics ? `${routeMetrics.savingsPct}%` : '—',
-            'vs. fixed schedule distance',                           'var(--amber)'],
-          ['CO₂ This Run',  routeMetrics ? `${routeMetrics.co2kg} kg` : '—',
-            routeMetrics ? `${routeMetrics.distance.toFixed(1)} km · ${routeMetrics.stops} stops` : 'No route computed', 'var(--sky)'],
+          ['Avg Fill',        `${liveAvg}%`,         'Fleet fill average · from 0x08',               'var(--blue)'],
+          ['Avg Battery',     `${avgBattery}%`,      'Fleet battery average · from 0x07',             'var(--green)'],
+          ['Need Collection', needCollection,         'Bins above 80% threshold',                     'var(--amber)'],
+          ['Compactions',     totalCycles,            'Total compaction cycles · from 0x09',           'var(--sub)'],
+          ['Door Opens',      totalOpens,             'Total door open events · from 0x09',            'var(--sub)'],
+          ['Uptime',          `${uptimePct}%`,        `${bins.filter(b=>b.status!=='offline').length} of ${bins.length} online`, 'var(--green)'],
+          ['Route Savings',   routeMetrics ? `${routeMetrics.savingsPct}%` : '—', 'vs. fixed schedule distance', 'var(--amber)'],
+          ['CO₂ This Run',    routeMetrics ? `${routeMetrics.co2kg} kg` : '—', routeMetrics ? `${routeMetrics.distance.toFixed(1)} km · ${routeMetrics.stops} stops` : 'No route computed', 'var(--sky)'],
         ].map(([l,v,n,c]) => (
           <div key={l} style={{ ...card, padding:'16px 18px' }}>
             <div style={label}>{l}</div>
