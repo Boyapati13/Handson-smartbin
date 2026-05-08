@@ -39,6 +39,10 @@ HandsOn SmartBin is a full-stack IoT fleet management platform for the **HY-CKX1
 
 ## Architecture
 
+Two backend options are available. The full-stack server (`server/`) runs the dashboard, simulator, and WebSocket feed. The production backend (`backend/`) is a lean TCP-to-PostgreSQL pipeline with no in-memory state.
+
+### Full-stack server (demo + dashboard)
+
 ```
 ┌──────────────────────────────────────────────────────┐
 │              GCP VM  130.211.208.47 (static)         │
@@ -58,7 +62,29 @@ HandsOn SmartBin is a full-stack IoT fleet management platform for the **HY-CKX1
                         └─────────────────────┘
 ```
 
-**Stack:** React 18, Vite, Recharts, Leaflet, Node.js ESM, Express, ws, pm2, GCP
+### Production backend (TCP → PostgreSQL)
+
+```
+┌──────────────────────────────────────────────────────┐
+│              backend/  (Node.js ESM)                 │
+│                                                      │
+│   TCP :8078                                          │
+│   ├── parse E9xx frames                              │
+│   ├── ACK back to device                             │
+│   └── write to PostgreSQL                            │
+│       ├── sessions   (connect / disconnect times)    │
+│       ├── frames     (raw hex audit trail)           │
+│       ├── readings   (sensor time-series)            │
+│       ├── bin_state  (current state, upserted)       │
+│       └── alerts     (jam / smoke / fault events)   │
+└──────────────────────────────────────────────────────┘
+                  ▲ TCP E9xx frames
+       ┌──────────┴──────────┐
+       │  HY-CKX1 Device     │
+       └─────────────────────┘
+```
+
+**Stack:** React 19, Vite, Recharts, Leaflet, Node.js ESM, Express, ws, PostgreSQL, pg, pm2, GCP
 
 ---
 
@@ -120,6 +146,8 @@ The parser uses `data_len` (byte 3) to calculate exact frame size — never sear
 ### Prerequisites
 - Node.js 20+, npm 10+
 
+### Full-stack server (frontend + dashboard + simulator)
+
 ```bash
 git clone https://github.com/Boyapati13/Handson-smartbin.git
 cd Handson-smartbin
@@ -135,6 +163,20 @@ Open **http://localhost:5173**
 | WebSocket | ws://localhost:8765 |
 | REST API | http://localhost:3001/api |
 | Device TCP | 0.0.0.0:8078 |
+
+### Production backend (TCP → PostgreSQL only)
+
+```bash
+cd backend
+cp .env.example .env
+# Set DATABASE_URL=postgresql://user:password@localhost:5432/smartbin
+
+npm install
+npm run db:init   # creates tables (safe to re-run)
+npm start         # listens on TCP :8078
+```
+
+Devices connect on `:8078`. All frames, sensor readings, and alerts are persisted to Postgres — no in-memory state, no simulator.
 
 ---
 
@@ -162,8 +204,9 @@ curl http://localhost:3001/api/health
 
 | Name | Port | Purpose |
 |------|------|---------|
-| smartbin | 3001, 8078, 8765 | Backend + WebSocket + TCP proxy |
+| smartbin | 3001, 8078, 8765 | Full-stack backend + WebSocket + TCP proxy |
 | frontend | 80 | Serve built React app |
+| smartbin-backend | 8078 | Production backend (TCP → PostgreSQL), replaces smartbin when live |
 
 ### Firewall
 Rule `allow-smartbin-device`: `tcp:80, tcp:3001, tcp:8078, tcp:8765`
@@ -247,7 +290,7 @@ Edit credentials in `src/context/AuthContext.jsx` → `USERS` object.
 
 ## Environment Variables
 
-### Server (`server/.env`)
+### Full-stack server (`server/.env`)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -257,6 +300,16 @@ Edit credentials in `src/context/AuthContext.jsx` → `USERS` object.
 | `DEVICE_PUBLIC_HOST` | null | Public IP (shown in device setup instructions) |
 | `SIMULATION` | `false` | Enable bin simulation |
 | `CLOUD_FORWARD` | `false` | Mirror to recycle4g.lxhsoft.com |
+
+### Production backend (`backend/.env`)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | — | PostgreSQL connection string (required) |
+| `TCP_PORT` | `8078` | Device TCP listen port |
+| `CLOUD_FORWARD` | `false` | Mirror traffic to recycle4g.lxhsoft.com |
+| `CLOUD_FORWARD_HOST` | `recycle4g.lxhsoft.com` | Legacy cloud host for forwarding |
+| `CLOUD_FORWARD_PORT` | `8078` | Legacy cloud port |
 
 ### Frontend (`.env.production`)
 
@@ -295,40 +348,52 @@ npm run dns       # DNS spoof server (zero device change needed)
 
 ```
 handson-smartbin/
-├── server/
-│   ├── index.js            Entry point: WS + HTTP + TCP
-│   ├── tcp-proxy.js        E9xx frame parser + device handler
-│   ├── device-bridge.js    Frame decoder + length-based parseFrames()
-│   ├── device-registry.js  Card-to-bin-ID mapping
-│   ├── store.js            In-memory data store
-│   ├── api.js              REST API (all routes)
-│   ├── simulator.js        Bin simulation (SIMULATION=true)
-│   └── dns-spoof.js        DNS intercept server
+├── backend/                        Production TCP → PostgreSQL backend
+│   ├── index.js                    Entry point: init DB, start TCP
+│   ├── tcp.js                      TCP socket server (port 8078)
+│   ├── parser.js                   E9xx frame parser + decoder
+│   ├── registry.js                 Device card → bin ID mapping
+│   ├── .env.example                Config template
+│   ├── package.json
+│   └── db/
+│       ├── pool.js                 pg connection pool + initDb()
+│       ├── schema.sql              5 tables: sessions, frames, readings, bin_state, alerts
+│       ├── queries.js              DB write functions (insertFrame, upsertBinState, …)
+│       └── init.js                 One-shot schema setup script
+├── server/                         Full-stack backend (dashboard + simulator)
+│   ├── index.js                    Entry point: WS + HTTP + TCP
+│   ├── tcp-proxy.js                E9xx frame parser + device handler
+│   ├── device-bridge.js            Frame decoder + length-based parseFrames()
+│   ├── device-registry.js          Card-to-bin-ID mapping
+│   ├── store.js                    In-memory data store
+│   ├── api.js                      REST API (all routes)
+│   ├── simulator.js                Bin simulation (SIMULATION=true)
+│   └── dns-spoof.js                DNS intercept server
 ├── src/
 │   ├── context/
-│   │   ├── AppContext.jsx  WS state, demo/admin mode, command dispatch
-│   │   └── AuthContext.jsx Login, user credentials
+│   │   ├── AppContext.jsx          WS state, demo/admin mode, command dispatch
+│   │   └── AuthContext.jsx         Login, user credentials
 │   ├── pages/
-│   │   ├── Landing.jsx     Marketing + login
-│   │   ├── Dashboard.jsx   Operations centre
-│   │   ├── DeviceMonitor.jsx Live device: all E9xx sensor tiles
-│   │   ├── BinDetail.jsx   Full per-bin data (all protocol fields)
-│   │   ├── Reports.jsx     Fleet/per-bin analytics + CSV/JSON export
-│   │   ├── Analytics.jsx   Fleet fill/battery trends
-│   │   ├── Alerts.jsx      Alert management
-│   │   ├── Maintenance.jsx Maintenance logging
-│   │   ├── Routes.jsx      Route planner (TSP)
-│   │   └── Telemetry.jsx   Raw frame stream console
+│   │   ├── Landing.jsx             Marketing + login
+│   │   ├── Dashboard.jsx           Operations centre
+│   │   ├── DeviceMonitor.jsx       Live device: all E9xx sensor tiles
+│   │   ├── BinDetail.jsx           Full per-bin data (all protocol fields)
+│   │   ├── Reports.jsx             Fleet/per-bin analytics + CSV/JSON export
+│   │   ├── Analytics.jsx           Fleet fill/battery trends
+│   │   ├── Alerts.jsx              Alert management
+│   │   ├── Maintenance.jsx         Maintenance logging
+│   │   ├── Routes.jsx              Route planner (TSP)
+│   │   └── Telemetry.jsx           Raw frame stream console
 │   ├── components/
-│   │   ├── ChatBot.jsx     SmartBin assistant chatbot
-│   │   ├── MapView.jsx     Leaflet map (null-GPS safe)
-│   │   ├── RouteMap.jsx    Route planner map
+│   │   ├── ChatBot.jsx             SmartBin assistant chatbot
+│   │   ├── MapView.jsx             Leaflet map (null-GPS safe)
+│   │   ├── RouteMap.jsx            Route planner map
 │   │   └── ...
-│   ├── data/bins.js        Static bin data + demo fleet
-│   └── utils/routing.js   TSP optimisation + GPS guards
-├── public/handson_logo.png Official brand PNG
-├── .env                    Server env (not committed)
-├── .env.production         Frontend build env (not committed)
+│   ├── data/bins.js                Static bin data + demo fleet
+│   └── utils/routing.js            TSP optimisation + GPS guards
+├── public/handson_logo.png         Official brand PNG
+├── .env                            Server env (not committed)
+├── .env.production                 Frontend build env (not committed)
 └── README.md
 ```
 

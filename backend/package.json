@@ -1,0 +1,16 @@
+{
+  "name": "smartbin-backend",
+  "version": "1.0.0",
+  "description": "HandsOn SmartBin — TCP socket listener + PostgreSQL persistence",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "db:init": "node db/init.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "pg": "^8.12.0"
+  }
+}
