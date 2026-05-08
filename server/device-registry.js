@@ -7,7 +7,7 @@
  */
 
 export const DEVICE_REGISTRY = {
-  '26042400P101': { cardNumber: '26042400P101', imei: '867105074732545', binId: 'HS-001', name: 'Valletta City Gate'    },
+  '26042400P101': { cardNumber: '26042400P101', imei: '867105074732545', binId: 'HS-001', name: 'HS-001'               },
   '26042400P102': { binId: 'HS-002', name: 'Sliema Promenade'      },
   '26042400P103': { binId: 'HS-003', name: 'Bugibba Square'        },
   '26042400P104': { binId: 'HS-004', name: 'Mdina Main Gate'       },

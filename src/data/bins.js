@@ -25,7 +25,7 @@ export const FRAME_CATALOG = [
 export const BINS = [
   {
     id:'HS-001', deviceNo:'26042400P101', imei:'867105074732545',
-    name:'SmartBin Unit 1', area:'Site A',
+    name:'HS-001', area:'Site A',
     fill:0, battery:0, status:'offline', cycles:0, temp:0, signal:0,
     smoke:0, doorOpen:false, lat:null, lng:null, seen:null,
   },

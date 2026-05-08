@@ -4,7 +4,7 @@
  */
 
 export const INITIAL_BINS = [
-  { id:'HS-001', deviceNo:'26042400P101', imei:'867105074732545', name:'SmartBin Unit 1', area:'Site A', fill:0, battery:0, status:'offline', cycles:0, temp:0, signal:0, lat:null, lng:null },
+  { id:'HS-001', deviceNo:'26042400P101', imei:'867105074732545', name:'HS-001', area:'Site A', fill:0, battery:0, status:'offline', cycles:0, temp:0, signal:0, lat:null, lng:null },
 ];
 
 function nowTs() { return new Date().toISOString().replace('T',' ').slice(0,19); }
