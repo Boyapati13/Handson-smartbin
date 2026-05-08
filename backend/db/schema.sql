@@ -1,5 +1,5 @@
 -- HandsOn SmartBin — PostgreSQL schema
--- Safe to re-run: all statements use IF NOT EXISTS / OR REPLACE
+-- Safe to re-run: CREATE IF NOT EXISTS + ALTER ADD COLUMN IF NOT EXISTS
 
 CREATE TABLE IF NOT EXISTS sessions (
   id              BIGSERIAL    PRIMARY KEY,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS frames (
 CREATE INDEX IF NOT EXISTS idx_frames_card     ON frames (card_number);
 CREATE INDEX IF NOT EXISTS idx_frames_received ON frames (received_at DESC);
 
--- Sensor readings — time-series table, one row per frame that carries sensor data
+-- Sensor readings — time-series, one row per data-carrying frame
 CREATE TABLE IF NOT EXISTS readings (
   id              BIGSERIAL    PRIMARY KEY,
   bin_id          TEXT         NOT NULL,
@@ -43,10 +43,11 @@ CREATE TABLE IF NOT EXISTS readings (
 CREATE INDEX IF NOT EXISTS idx_readings_bin_time ON readings (bin_id, recorded_at DESC);
 CREATE INDEX IF NOT EXISTS idx_readings_type     ON readings (bin_id, reading_type);
 
--- Current bin state — one row per bin_id, updated in-place on every frame
+-- Current bin state — one row per bin_id, upserted on every relevant frame
 CREATE TABLE IF NOT EXISTS bin_state (
   bin_id              TEXT        PRIMARY KEY,
   card_number         TEXT,
+  bin_name            TEXT,
   fill_pct            SMALLINT,
   battery_pct         SMALLINT,
   battery_voltage     SMALLINT,
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS bin_state (
   temperature         SMALLINT,
   door_open           BOOLEAN     DEFAULT FALSE,
   overflow            BOOLEAN     DEFAULT FALSE,
+  missing_bin         BOOLEAN     DEFAULT FALSE,
   motor_fault         BOOLEAN     DEFAULT FALSE,
   sensor_fault        BOOLEAN     DEFAULT FALSE,
   lat                 DOUBLE PRECISION,
@@ -64,12 +66,16 @@ CREATE TABLE IF NOT EXISTS bin_state (
   last_seen           TIMESTAMPTZ
 );
 
--- Alerts — raised by device frames, acknowledged by operators
+-- Idempotent column additions for databases created before these columns existed
+ALTER TABLE bin_state ADD COLUMN IF NOT EXISTS bin_name    TEXT;
+ALTER TABLE bin_state ADD COLUMN IF NOT EXISTS missing_bin BOOLEAN DEFAULT FALSE;
+
+-- Alerts — JAM | SMOKE_FIRE | OVERFLOW | MOTOR_FAULT | SENSOR_FAULT | BIN_MISSING
 CREATE TABLE IF NOT EXISTS alerts (
   id          BIGSERIAL    PRIMARY KEY,
   bin_id      TEXT         NOT NULL,
   card_number TEXT,
-  alert_type  TEXT         NOT NULL, -- JAM | SMOKE_FIRE | OVERFLOW | MOTOR_FAULT | SENSOR_FAULT
+  alert_type  TEXT         NOT NULL,
   message     TEXT,
   severity    TEXT         NOT NULL DEFAULT 'warning', -- warning | error | critical
   hex         TEXT,
