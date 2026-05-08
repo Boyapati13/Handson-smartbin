@@ -3,7 +3,11 @@ import { BINS as STATIC_BINS, DEMO_BINS, DEMO_ALERTS } from '../data/bins';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useAuth } from './AuthContext';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8765';
+// WebSocket follows the same host as the page — no rebuild needed if IP changes.
+const WS_URL = import.meta.env.VITE_WS_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? `ws://${window.location.hostname}:8765`
+    : 'ws://localhost:8765');
 
 const AppContext = createContext(null);
 

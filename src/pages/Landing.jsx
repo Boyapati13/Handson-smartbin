@@ -583,7 +583,7 @@ export default function Landing() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
                   { n: '01', title: 'Open device config screen', desc: 'On the HY-CKX1 Android panel, go to Basic Information Configuration.', color: C.blue },
-                  { n: '02', title: 'Enter the server endpoint',  desc: 'Set TCP IP to 130.211.208.47 and Port to 8078. Tap SAVE.', color: '#a78bfa' },
+                  { n: '02', title: 'Enter the server endpoint',  desc: `Set TCP IP to ${typeof window !== 'undefined' ? window.location.hostname : '130.211.208.47'} and Port to 8078. Tap SAVE.`, color: '#a78bfa' },
                   { n: '03', title: 'Restart and go live',        desc: 'Restart the device app. It handshakes with our server and appears live on the dashboard within seconds.', color: C.green },
                 ].map((step, i) => (
                   <div key={step.n} style={{ display: 'flex', gap: 18, padding: '22px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, transition: 'border-color 0.2s ease-out, box-shadow 0.2s ease-out' }}

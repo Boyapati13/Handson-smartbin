@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// In production the API lives on the same host as the page (just different port).
+// This means if the VM IP changes, no rebuild is needed — it follows the hostname.
+const BASE = import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? `http://${window.location.hostname}:3001/api`
+    : 'http://localhost:3001/api');
 
 /** Generic fetcher with loading / error state and manual refetch. */
 export function useApi(path, { skip = false, deps = [] } = {}) {
