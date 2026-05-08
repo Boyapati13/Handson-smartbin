@@ -174,9 +174,9 @@ export function buildHeartbeatFrame(bin) {
   return { dir:'UART→TCP', hex:`E9 09 06 01 ${fillHex} ${batHex} ${tempHex} 00 00 00 00 0D 0A`, decoded:`Heartbeat · ${bin.id} · fill=${Math.round(bin.fill)}% · bat=${Math.round(bin.battery)}% · temp=${Math.round(bin.temp)}°C`, ts:nowTs() };
 }
 export function buildAckFrame()                { return { dir:'TCP→UART', hex:'E9 AB 00 0D 0A',         decoded:'ACK · server confirmed receipt', ts:nowTs() }; }
-export function buildCompactCommandFrame()     { return { dir:'TCP→UART', hex:'E9 B1 01 0D 0A',         decoded:'CMD · compaction triggered', ts:nowTs() }; }
-export function buildDiagnosticsRequestFrame() { return { dir:'TCP→UART', hex:'E9 C2 01 0D 0A',         decoded:'CMD · diagnostics requested', ts:nowTs() }; }
-export function buildResetCommandFrame()       { return { dir:'TCP→UART', hex:'E9 B2 01 0D 0A',         decoded:'CMD · device reset', ts:nowTs() }; }
-export function buildDoorUnlockFrame()         { return { dir:'TCP→UART', hex:'E9 B3 01 0D 0A',         decoded:'CMD · unlock service door', ts:nowTs() }; }
+export function buildCompactCommandFrame()     { return { dir:'TCP→UART', hex:'E9 C5 00 0D 0A',         decoded:'CMD → read all bucket capacity (0xC5)', ts:nowTs() }; }
+export function buildDiagnosticsRequestFrame() { return { dir:'TCP→UART', hex:'E9 C3 00 0D 0A',         decoded:'CMD → read bucket status (0xC3)', ts:nowTs() }; }
+export function buildResetCommandFrame()       { return { dir:'TCP→UART', hex:'E9 C3 00 0D 0A',         decoded:'CMD → read bucket status (0xC3)', ts:nowTs() }; }
+export function buildDoorUnlockFrame()         { return { dir:'TCP→UART', hex:'E9 C1 01 D1 0D 0A',      decoded:'CMD → open deposit door 1 (0xC1)', ts:nowTs() }; }
 
 function nowTs() { return new Date().toISOString().replace('T',' ').slice(0,19); }

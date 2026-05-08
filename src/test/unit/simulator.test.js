@@ -100,8 +100,8 @@ describe('frame builders', () => {
     expect(f.decoded).toContain('ACK');
   });
 
-  it('buildCompactCommandFrame returns correct hex', () => {
+  it('buildCompactCommandFrame returns correct hex (0xC5 read capacity)', () => {
     const f = buildCompactCommandFrame();
-    expect(f.hex).toBe('E9 B1 01 0D 0A');
+    expect(f.hex).toBe('E9 C5 00 0D 0A');
   });
 });
