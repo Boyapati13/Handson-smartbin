@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <script>
+      // Keep the repo segment for GitHub Pages URLs, e.g. /Handson-smartbin/
+      const pathSegmentsToKeep = 1
+      const l = window.location
+      const pathParts = l.pathname.split('/')
+      const origin = `${l.protocol}//${l.hostname}${l.port ? `:${l.port}` : ''}`
+      const repoBase = `/${pathParts.slice(1, 1 + pathSegmentsToKeep).join('/')}`
+      const appPath = pathParts
+        .slice(1 + pathSegmentsToKeep)
+        .join('/')
+        .replace(/&/g, '~and~')
+      const query = l.search ? `&${l.search.slice(1).replace(/&/g, '~and~')}` : ''
+
+      l.replace(
+        `${origin}${repoBase}/?/${appPath}${query}${l.hash}`,
+      )
+    </script>
+  </head>
+  <body></body>
+</html>

@@ -12,6 +12,7 @@
 - [Architecture](#architecture)
 - [Device Protocol](#device-protocol)
 - [Quick Start (Local)](#quick-start-local)
+- [GitHub Pages Deployment](#github-pages-deployment)
 - [Production Deployment (GCP)](#production-deployment-gcp)
 - [Connecting the Device](#connecting-the-device)
 - [Frontend Pages](#frontend-pages)
@@ -177,6 +178,24 @@ npm start         # listens on TCP :8078
 ```
 
 Devices connect on `:8078`. All frames, sensor readings, and alerts are persisted to Postgres — no in-memory state, no simulator.
+
+---
+
+## GitHub Pages Deployment
+
+This repository now includes an automated Pages workflow:
+
+- Workflow file: `.github/workflows/deploy-pages.yml`
+- Trigger: push to `main` (or manual run from Actions tab)
+- Deploy target: `https://boyapati13.github.io/Handson-smartbin/`
+
+### One-time repository setup
+
+1. Open **Settings → Pages**
+2. In **Build and deployment**, set **Source** to **GitHub Actions**
+3. Push to `main` (or run **Deploy to GitHub Pages** manually)
+
+The workflow builds the frontend and publishes the `dist/` output to GitHub Pages with the correct repository base path.
 
 ---
 
