@@ -18,6 +18,7 @@
             .split('&')
             .map((s) => s.replace(/~and~/g, '&'))
             .join('?')
+          // Remove trailing slash before replaying the original client-side route.
           window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash)
         }
       })(window.location)
